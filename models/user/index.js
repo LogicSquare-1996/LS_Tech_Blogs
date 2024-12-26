@@ -6,7 +6,7 @@ const mailer = require("../../lib/mail")
 
 const UserSchema = new mongoose.Schema({
 
-  username: { 
+  username: {
     type: String,
     unique: true
   },
@@ -42,7 +42,17 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ["Male", "Female", "Other"],
   },
-
+  githubProfile: {
+    type: String
+  },
+  profileImage: {
+    type: String
+  },
+  role: {
+    type: String,
+    enum: ["employee", "admin"],
+    default: "employee"
+  },
   isActive: {
     type: Boolean,
     default: false
