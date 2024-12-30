@@ -13,6 +13,8 @@ const forgotpassword = require("./auth/password")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
+router.post('/verify', signup.verify)
+router.post('/resendOTP', signup.resendOTP)
 router.post("/forgotpassword", forgotpassword.startWorkflow) // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword) // UNAUTHENTICATED; AJAX
 

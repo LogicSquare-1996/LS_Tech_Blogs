@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
 
   username: {
     type: String,
-    unique: true
+    // unique: true
   },
 
   password: {
@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     lowercase: true,
-    unique: true,
+    // unique: true,
   },
 
   accountType: {
@@ -62,7 +62,10 @@ const UserSchema = new mongoose.Schema({
     requestedAt: { type: Date, default: null },
     token: { type: String, default: null },
     expiresAt: { type: Date, default: null }
-  }
+  },
+  otp: { type: String }, // OTP for email verification
+  otpCreatedAt: { type: Date },
+  isVerified: { type: Boolean, default: false }, // Email verification status
 })
 
 
@@ -101,29 +104,34 @@ UserSchema.methods.comparePassword = async function (pw) {
 // eslint-disable-next-line prefer-arrow-callback
 UserSchema.post("save", function (doc) {
   if (doc.generatedPassword !== undefined) {
-    // Send welcome email, but NO WAITING!
-    mailer("welcome", {
-      to: doc.email,
-      subject: "Welcome!!!",
-      locals: { email: doc.email, password: doc.generatedPassword, name: doc.name }
-    })
+    try {
+      mailer("welcome", {
+        to: doc.email,
+        subject: "Welcome!!!",
+        locals: { email: doc.email, password: doc.generatedPassword, name: `${doc.firstName} ${doc.lastName}` }
+      });
+    } catch (error) {
+      console.error("Error sending welcome email:", error);
+    }
   }
-})
+});
+
 
 UserSchema.virtual("name.full").get(function () {
-  const first = (this.name.first === undefined || this.name.first === null)
+  const first = (this.firstName === undefined || this.firstName === null)
     ? ""
-    : this.name.first
-  const last = (this.name.last === undefined || this.name.last === null)
+    : this.firstName
+  const last = (this.lastName === undefined || this.lastName === null)
     ? ""
-    : ` ${this.name.last}`
+    : ` ${this.lastName}`
   return `${first}${last}`
 })
 
 UserSchema.virtual("name.full").set(function (v) {
-  this.name.first = v.substr(0, v.indexOf(" "))
-  this.name.last = v.substr(v.indexOf(" ") + 1)
+  this.firstName = v.substr(0, v.indexOf(" "))
+  this.lastName = v.substr(v.indexOf(" ") + 1)
 })
+
 
 UserSchema.set("timestamps", true)
 UserSchema.set("toJSON", { virtuals: true })
