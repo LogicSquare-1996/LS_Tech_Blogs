@@ -12,8 +12,7 @@ const UserSchema = new mongoose.Schema({
   },
 
   password: {
-    type: String,
-    required: true
+    type: String
   },
 
   firstName: String,
@@ -66,23 +65,24 @@ const UserSchema = new mongoose.Schema({
   otp: { type: String }, // OTP for email verification
   otpCreatedAt: { type: Date },
   isVerified: { type: Boolean, default: false }, // Email verification status
+  googleId: { type: String, unique: true },
 })
 
 
-UserSchema.pre("validate", function (next) {
-  if (this.isNew) {
-    if (this.password === undefined || this.password === null) {
-      this.generatedPassword = randomstring.generate(8) // for usage in post save hook to send welcome email
-      this.password = this.generatedPassword
-    }
-  }
-  return next()
-})
+// UserSchema.pre("validate", function (next) {
+//   if (this.isNew) {
+//     if (this.password === undefined || this.password === null) {
+//       this.generatedPassword = randomstring.generate(8) // for usage in post save hook to send welcome email
+//       this.password = this.generatedPassword
+//     }
+//   }
+//   return next()
+// })
 
 // Hash & save user's password:
 UserSchema.pre("save", async function (next) {
   const user = this
-  if (this.isModified("password") || this.isNew) {
+  if ((this.isModified("password") || this.isNew) && this.password) {
     try {
       user.password = await bcrypt.hash(user.password, +process.env.SALT_ROUNDS || 10)
     } catch (error) {
@@ -91,6 +91,12 @@ UserSchema.pre("save", async function (next) {
   }
   return next()
 })
+
+
+
+
+
+
 
 // compare two passwords:
 UserSchema.methods.comparePassword = async function (pw) {
@@ -102,19 +108,19 @@ UserSchema.methods.comparePassword = async function (pw) {
   }
 }
 // eslint-disable-next-line prefer-arrow-callback
-UserSchema.post("save", function (doc) {
-  if (doc.generatedPassword !== undefined) {
-    try {
-      mailer("welcome", {
-        to: doc.email,
-        subject: "Welcome!!!",
-        locals: { email: doc.email, password: doc.generatedPassword, name: `${doc.firstName} ${doc.lastName}` }
-      });
-    } catch (error) {
-      console.error("Error sending welcome email:", error);
-    }
-  }
-});
+// UserSchema.post("save", function (doc) {
+//   if (doc.generatedPassword !== undefined) {
+//     try {
+//       mailer("welcome", {
+//         to: doc.email,
+//         subject: "Welcome!!!",
+//         locals: { email: doc.email, password: doc.generatedPassword, name: `${doc.firstName} ${doc.lastName}` }
+//       });
+//     } catch (error) {
+//       console.error("Error sending welcome email:", error);
+//     }
+//   }
+// });
 
 
 UserSchema.virtual("name.full").get(function () {

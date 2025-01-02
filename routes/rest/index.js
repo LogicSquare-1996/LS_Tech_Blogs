@@ -15,6 +15,7 @@ router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post('/verify', signup.verify)
 router.post('/resendOTP', signup.resendOTP)
+router.post('/google', login.googleLogin)
 router.post("/forgotpassword", forgotpassword.startWorkflow) // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword) // UNAUTHENTICATED; AJAX
 
