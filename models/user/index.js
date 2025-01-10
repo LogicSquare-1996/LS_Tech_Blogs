@@ -31,7 +31,19 @@ const UserSchema = new mongoose.Schema({
     default: "email"
   },
 
-  socialId: String,
+  social: [{ // social media links
+    name: {
+      type: String,
+      enum: ["facebook", "instagram", "twitter", "tiktok", "youtube", "snapchat"]
+    },
+    username: {
+      type: String
+    },
+    socialId: {
+      type: String
+    },
+    accountUrl: String
+  }],
 
   phone: {
     type: String

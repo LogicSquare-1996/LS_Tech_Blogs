@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken")
 const axios = require("axios")
+const { STS } = require("aws-sdk")
 
 const User = require("../../../models/user")
 
@@ -86,6 +87,33 @@ module.exports = {
         error: true,
         reason: err.message
       })
+    }
+  },
+
+  async getAwsKey(req, res) {
+    try {
+      const sts = new STS({ accessKeyId: process.env.AWS_ACCESS_KEY, secretAccessKey: process.env.AWS_SECRET })
+      const { Credentials } = await sts.getSessionToken().promise()
+      // CORS:
+      res.setHeader("Access-Control-Allow-Origin", "*")
+      res.setHeader("Access-Control-Request-Method", "*")
+      res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+      // res.setHeader("Access-Control-Allow-Headers", "*")
+      res.setHeader("Access-Control-Allow-Headers", "authorization, origin, x-requested-with, x-http-method-override, content-type, Overwrite, Destination, Depth, User-Agent, Translate, Range, Content-Range, Timeout, X-File-Size, If-Modified-Since, X-File-Name, Cache-Control, Location, Lock-Token")
+      if (req.method === "OPTIONS") {
+        res.writeHead(200)
+        return res.end()
+      }
+
+      return res.json({
+        error: false,
+        S3BucketName: process.env.AWS_BUCKET_NAME,
+        S3Region: process.env.AWS_BUCKET_REGION,
+        ...Credentials
+      })
+    } catch (err) {
+      console.log("==> ERR generating temp AWS creds: ", err)
+      return res.status(500).json({ error: true, reason: err.message })
     }
   },
 

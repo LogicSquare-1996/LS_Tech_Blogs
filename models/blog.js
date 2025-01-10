@@ -1,24 +1,60 @@
 const mongoose = require('mongoose');
+const like = require('./like');
 
 const BlogSchema = new mongoose.Schema({
+  _author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  _likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
+  _comments: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      comment: {
+        type: String
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
+  likesCount: {
+    type: Number,
+    default: 0
+  },
+  commentsCount: {
+    type: Number,
+    default: 0
+  },
+  bookmarks: [
+    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Blog' 
+    }
+  ],
   title: {
     type: String
   },
   content: {
     type: String
   },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  thumbnail: {
+    type: String
   },
   tags: {
     type: [String]
   },
   gitHubLink: {
     type: String
-  },
-  codeBlocks: {
-    type: [String]
   },
   attachments: [
     {
@@ -49,27 +85,7 @@ const BlogSchema = new mongoose.Schema({
     enum: ['draft', 'published'],
     default: 'draft'
   },
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }
-  ],
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      },
-      comment: {
-        type: String
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
-    }
-  ],
+
   views: {
     type: Number,
     default: 0

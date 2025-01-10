@@ -21,6 +21,9 @@ router.post("/resetpassword", forgotpassword.resetPassword) // UNAUTHENTICATED; 
 
 router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
+router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
+
 router.get("/user/:id", users.get)
+router.post("/createBlog",router.post)
 
 module.exports = router
