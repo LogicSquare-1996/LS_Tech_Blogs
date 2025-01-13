@@ -10,6 +10,8 @@ const users = require("./users")
 const login = require("./auth")
 const signup = require("./auth/signup")
 const forgotpassword = require("./auth/password")
+//Blogs Routes
+const blogs = require("./blogs")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
@@ -24,6 +26,7 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
 
 router.get("/user/:id", users.get)
-router.post("/createBlog",router.post)
+router.post("/createBlog",blogs.post)
+router.post("/blogs",blogs.getBlogs)
 
 module.exports = router

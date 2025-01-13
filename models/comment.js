@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
-  blogId: {
+  _blogId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Blog',
     required: true,
@@ -54,11 +54,7 @@ CommentSchema.virtual('replyCount').get(function () {
   return this.replies.length;
 });
 
-// Cascading delete: If a blog is deleted, delete its comments
-mongoose.model('Blog').schema.pre('remove', async function (next) {
-  await mongoose.model('Comment').deleteMany({ blogId: this._id });
-  next();
-});
+
 
 // Populate `userId` and `replies.userId` automatically
 CommentSchema.post('find', async function (docs, next) {

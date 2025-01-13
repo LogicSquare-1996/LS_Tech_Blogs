@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const like = require('./like');
+const Like = require('./like');
+const Comment = require('./comment');
 
 const BlogSchema = new mongoose.Schema({
   _author: {
@@ -85,7 +86,6 @@ const BlogSchema = new mongoose.Schema({
     enum: ['draft', 'published'],
     default: 'draft'
   },
-
   views: {
     type: Number,
     default: 0
@@ -99,23 +99,17 @@ const BlogSchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to generate slug and calculate read time
-BlogSchema.pre('save', function (next) {
-  // Generate slug from title
+BlogSchema.pre('save', async function (next) {
   if (this.isModified('title')) {
-    this.slug = this.title
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-');
+    this.slug = this.title.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
+    const existingBlog = await Blog.findOne({ slug: this.slug });
+    if (existingBlog) {
+      this.slug = `${this.slug}-${Date.now()}`; // Add a timestamp to make it unique
+    }
   }
-
-  // Calculate read time based on content word count
-  if (this.isModified('content')) {
-    const words = this.content.split(/\s+/).length;
-    this.readTime = Math.ceil(words / 200); // Average reading speed: 200 words/min
-  }
-
   next();
 });
+
 
 // Virtual for comment count
 BlogSchema.virtual('commentCount').get(function () {
@@ -125,6 +119,17 @@ BlogSchema.virtual('commentCount').get(function () {
 // Virtual for like count
 BlogSchema.virtual('likeCount').get(function () {
   return this.likes.length; // Fixed for likes as an array of ObjectId
+});
+
+// Pre-remove middleware for cascading delete
+BlogSchema.pre('remove', async function (next) {
+  // Delete all likes associated with this blog
+  await mongoose.model('Like').deleteMany({ _blogId: this._id });
+
+  // Delete all comments associated with this blog
+  await mongoose.model('Comment').deleteMany({ _blogId: this._id });
+
+  next();
 });
 
 module.exports = mongoose.model('Blog', BlogSchema);

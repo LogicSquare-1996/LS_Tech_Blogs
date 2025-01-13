@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Like Schema to track which users liked a blog
 const LikeSchema = new mongoose.Schema({
-  blogId: {
+  _blogId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Blog',
     required: true,
@@ -49,11 +49,7 @@ LikeSchema.virtual('likeCount').get(async function () {
   return likeCount;
 });
 
-// Cascading delete: If a blog is deleted, delete all associated likes
-mongoose.model('Blog').schema.pre('remove', async function (next) {
-  await mongoose.model('Like').deleteMany({ blogId: this._id });
-  next();
-});
+
 
 // Automatically populate userId field on find queries
 LikeSchema.post('find', async function (docs, next) {
