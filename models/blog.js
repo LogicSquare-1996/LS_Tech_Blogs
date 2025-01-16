@@ -101,11 +101,11 @@ const BlogSchema = new mongoose.Schema({
 // Pre-save middleware to generate slug and calculate read time
 BlogSchema.pre('save', async function (next) {
   if (this.isModified('title')) {
+    // Create the base slug from the title
     this.slug = this.title.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
-    const existingBlog = await Blog.findOne({ slug: this.slug });
-    if (existingBlog) {
-      this.slug = `${this.slug}-${Date.now()}`; // Add a timestamp to make it unique
-    }
+    
+    // If the blog has been saved (has _id), append the _id to the slug
+    this.slug = `${this.slug}-${this._id}`;
   }
   next();
 });
@@ -113,12 +113,12 @@ BlogSchema.pre('save', async function (next) {
 
 // Virtual for comment count
 BlogSchema.virtual('commentCount').get(function () {
-  return this.comments.length;
+  return this._comments.length; // Corrected for comments stored in _comments
 });
 
 // Virtual for like count
 BlogSchema.virtual('likeCount').get(function () {
-  return this.likes.length; // Fixed for likes as an array of ObjectId
+  return this._likes.length; // Corrected for likes stored in _likes
 });
 
 // Pre-remove middleware for cascading delete

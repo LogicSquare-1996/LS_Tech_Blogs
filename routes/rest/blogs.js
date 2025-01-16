@@ -31,6 +31,8 @@ module.exports ={
             
             
         } catch (error) {
+            console.log(error);
+            
             return res.status(400).json({ error: true, message: error.message });
         }
     },
@@ -101,7 +103,19 @@ module.exports ={
           console.error(error);
           return res.status(400).json({ error: true, message: error.message });
         }
-      }
+      },
+    
+    async getblog(req,res){
+        try {
+            const {id} = req.params;
+            const blog = await Blog.findById({_id:id,status:"published"});
+            if(!blog) return res.status(400).json({error: true, message: "Blog not found"});
+            return res.status(200).json({error: false, blog});
+        } catch (error) {
+            console.log("Error is: ", error)
+            return res.status(400).json({error: true, message: error.message})
+        }
+    }
       
     
 

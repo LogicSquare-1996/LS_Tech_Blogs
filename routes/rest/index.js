@@ -28,5 +28,6 @@ router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
 router.get("/user/:id", users.get)
 router.post("/createBlog",blogs.post)
 router.post("/blogs",blogs.getBlogs)
+router.get("/blog/:id", blogs.getblog)
 
 module.exports = router
