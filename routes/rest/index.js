@@ -26,8 +26,12 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
 
 router.get("/user/:id", users.get)
+
 router.post("/createBlog",blogs.post)
 router.post("/blogs",blogs.getBlogs)
 router.get("/blog/:id", blogs.getblog)
-
+router.post("/updateBlog/:id",blogs.updateBlog)
+router.post("/deleteBlog/:id",blogs.deleteBlog)
+router.put('/blog/publish/:id',blogs.publishDraftBlog)
+router.get("/blogs/drafts",blogs.getPendingBlogs)
 module.exports = router

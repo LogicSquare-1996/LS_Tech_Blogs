@@ -115,7 +115,134 @@ module.exports ={
             console.log("Error is: ", error)
             return res.status(400).json({error: true, message: error.message})
         }
+    },
+
+    async updateBlog(req, res) {
+      try {
+        const {
+          params: { id },
+          body: {
+            title,
+            content,
+            tags,
+            category,
+            gitHubLink,
+            attachments,
+            thumbnail,
+            status, // This should be provided explicitly from the frontend
+          },
+        } = req;
+    
+        // Find the blog authored by the authenticated user
+        const blog = await Blog.findOne({ _id: id, _author: req.user._id }).exec();
+    
+        if (!blog) {
+          return res.status(404).json({ error: true, message: "Blog not found" });
+        }
+    
+        // Update blog fields if they are provided
+        if (title) blog.title = title;
+        if (content) blog.content = content;
+        if (tags) blog.tags = tags;
+        if (category) blog.category = category;
+        if (gitHubLink) blog.gitHubLink = gitHubLink;
+        if (attachments) blog.attachments = attachments;
+        if (thumbnail) blog.thumbnail = thumbnail;
+    
+        // Set the status based on frontend input
+        if (status) {
+          if (status.toLowerCase() === "draft") {
+            blog.status = "draft"; // Mark as pending for saved drafts
+          } else if (status.toLowerCase() === "publish") {
+            blog.status = "published"; // Mark as published for live posts
+          }
+        }
+    
+        // Save the updated blog
+        await blog.save();
+    
+        return res.status(200).json({
+          success: true,
+          message: "Blog updated successfully",
+          blog,
+        });
+      } catch (error) {
+        console.error("Error is: ", error);
+        return res.status(500).json({ error: true, message: error.message });
+      }
+    },
+    async deleteBlog(req, res) {
+      try {
+        const { id } = req.params;
+    
+        // Validate the blog ID format
+        if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+          return res.status(400).json({ error: true, message: "Invalid Blog ID" });
+        }
+    
+        // Find the blog by its ID and author
+        const blog = await Blog.findOne({ _id: id, _author: req.user._id });
+    
+        if (!blog) {
+          return res.status(404).json({ error: true, message: "No Blog Found" });
+        }
+    
+        // Mark the blog as deleted (soft delete)
+        blog.isDeleted = true;
+        await blog.save();
+    
+        return res.status(200).json({ success: true, message: "Blog deleted successfully (soft delete)" });
+      } catch (error) {
+        console.error("Error deleting blog: ", error);
+        return res.status(400).json({
+          error: true,
+          message: error.message,
+        });
+      }
+    },
+
+    async publishDraftBlog(req,res){
+      try {
+        const {id} = req.params
+
+        const blog = await Blog.findOne({_id: id, _author: author})
+
+        if (!blog) {
+          return res.status(404).json({ message: 'Blog not found' });
+        }
+  
+        // Check if the blog is in "Draft" status
+        if (blog.status !== 'draft') {
+          return res.status(400).json({ message: 'Only draft blogs can be published' });
+        }
+  
+        // Update the blog status to "Published"
+        blog.status = 'published';
+  
+        // Save the updated blog
+        await blog.save();
+  
+        // Respond with success
+        return res.status(200).json({
+          error: false,
+          message: 'Blog published successfully',
+          blog
+        });
+      } catch (error) {
+        console.log("Error is: ",error);
+        return res.status(400).json({error: true, message: error.message})
+        
+      }
+    },
+
+    async getPendingBlogs(req,res){
+      try {
+        
+      } catch (error) {
+        
+      }
     }
+    
       
     
 

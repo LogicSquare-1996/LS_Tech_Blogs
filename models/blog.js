@@ -95,6 +95,10 @@ const BlogSchema = new mongoose.Schema({
   },
   readTime: {
     type: Number
+  },
+  isDeleted:{
+    type: Boolean,
+    default: false
   }
 });
 
@@ -110,6 +114,11 @@ BlogSchema.pre('save', async function (next) {
   next();
 });
 
+BlogSchema.set('timestamps', true);
+
+// Enable virtual fields in JSON and Object conversions
+BlogSchema.set('toJSON', { virtuals: true });
+BlogSchema.set('toObject', { virtuals: true });
 
 // Virtual for comment count
 BlogSchema.virtual('commentCount').get(function () {
