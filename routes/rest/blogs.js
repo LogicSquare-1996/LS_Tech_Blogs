@@ -2,6 +2,74 @@ const Blog = require("../../models/blog");
 const History = require("../../models/history");
 
 module.exports ={
+
+    /**
+ * @api {post} /createBlog Create a new blog post
+ * @apiName CreateBlog
+ * @apiGroup Blogs
+ * @apiVersion 1.0.0
+ * 
+ * @apiDescription This endpoint allows an authenticated user to create a new blog post. 
+ * Mandatory fields include `title`, `content`, and `tags`. Optionally, you can provide 
+ * a `category`, `gitHubLink`, `attachments`, `thumbnail`, and set the publication `status`.
+ * If `status` is set to "published", the blog will be marked as published at the current time.
+ * 
+ * @apiPermission Authenticated User
+ * 
+ * @apiHeader {String} Authorization Bearer token for user authentication.
+ * 
+ * @apiBody {String} title The title of the blog post (mandatory).
+ * @apiBody {String} content The content of the blog post (mandatory).
+ * @apiBody {Array} tags An array of tags associated with the blog post (mandatory).
+ * @apiBody {String} [category] The category of the blog post (optional).
+ * @apiBody {String} [gitHubLink] A GitHub link associated with the blog post (optional).
+ * @apiBody {Array} [attachments] An array of file URLs for attachments (optional).
+ * @apiBody {String} [thumbnail] A URL to the thumbnail image of the blog post (optional).
+ * @apiBody {String} [status="published"] The publication status of the blog ("published" or "draft").
+ * 
+ * 
+ * @apiError {Boolean} error Indicates whether an error occurred (always true).
+ * @apiError {String} message Error message describing what went wrong.
+ * 
+ * @apiExample {json} Request Example:
+ * {
+ *   "title": "My First Blog",
+ *   "content": "This is the content of the blog.",
+ *   "tags": ["Node.js", "API", "Blog"],
+ *   "category": "Technology",
+ *   "gitHubLink": "https://github.com/user/repo",
+ *   "attachments": ["https://example.com/file1.pdf"],
+ *   "thumbnail": "https://example.com/image.jpg",
+ *   "status": "published"
+ * }
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 201 Created
+ * {
+ *   "message": "Blog created successfully",
+ *   "blog": {
+ *     "_id": "60f5a13d6b1f0e12345abcde",
+ *     "title": "My First Blog",
+ *     "content": "This is the content of the blog.",
+ *     "tags": ["Node.js", "API", "Blog"],
+ *     "category": "Technology",
+ *     "gitHubLink": "https://github.com/user/repo",
+ *     "attachments": ["https://example.com/file1.pdf"],
+ *     "thumbnail": "https://example.com/image.jpg",
+ *     "status": "published",
+ *     "publishedAt": "2025-01-21T12:34:56.789Z",
+ *     "_author": "60f5a13d6b1f0e12345abcd9"
+ *   }
+ * }
+ * 
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Missing mandatory field `title`"
+ * }
+ */
+
     async post(req,res){
         try {
             
@@ -36,6 +104,70 @@ module.exports ={
             return res.status(400).json({ error: true, message: error.message });
         }
     },
+
+    /**
+ * @api {post} /blogs Get blog posts with filters and pagination
+ * @apiName GetBlogs
+ * @apiGroup Blogs
+ * @apiVersion 2.0.0
+ * 
+ * @apiDescription This endpoint allows an authenticated user to retrieve a list of published blog posts with filtering, sorting, and pagination. 
+ * You can filter by `tags`, `categories`, and search by keywords (`searchQuery`). Blogs can be sorted by recommended posts (based on the user's search history) or by creation date.
+ * 
+ * @apiPermission Authenticated User
+ * 
+ * @apiHeader {String} Authorization Bearer token for user authentication.
+ * 
+ * @apiBody {Number} [page=1] The page number to fetch. Default is 1.
+ * @apiBody {Number} [limit=10] The number of blog posts per page. Default is 10.
+ * @apiBody {String="recommended", "byDate"} [sortBy="recommended"] The sorting method. Options are `recommended` (based on user history) and `byDate` (based on creation date).
+ * @apiBody {Array} [tags=[]] An array of tags to filter blogs by (optional).
+ * @apiBody {Array} [categories=[]] An array of categories to filter blogs by (optional).
+ * @apiBody {String} [searchQuery=""] A search query to match blogs by title using a case-insensitive regex (optional).
+ * 
+ * 
+ * @apiError {Boolean} error Indicates whether an error occurred (always true).
+ * @apiError {String} message Error message describing what went wrong.
+ * 
+ * @apiExample {json} Request Example:
+ * {
+ *   "page": 1,
+ *   "limit": 10,
+ *   "sortBy": "recommended",
+ *   "tags": ["Node.js", "API"],
+ *   "categories": ["Technology"],
+ *   "searchQuery": "blog"
+ * }
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "blogs": [
+ *     {
+ *       "_id": "60f5a13d6b1f0e12345abcde",
+ *       "title": "My First Blog",
+ *       "content": "This is the content of the blog.",
+ *       "tags": ["Node.js", "API"],
+ *       "category": "Technology",
+ *       "gitHubLink": "https://github.com/user/repo",
+ *       "attachments": ["https://example.com/file1.pdf"],
+ *       "thumbnail": "https://example.com/image.jpg",
+ *       "status": "published",
+ *       "publishedAt": "2025-01-21T12:34:56.789Z",
+ *       "_author": "60f5a13d6b1f0e12345abcd9",
+ *       "frequency": 5
+ *     }
+ *   ]
+ * }
+ * 
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Invalid pagination parameters."
+ * }
+ */
 
     async getBlogs(req, res) {
         try {
@@ -105,6 +237,38 @@ module.exports ={
         }
       },
     
+
+/**
+ * @api {get} /blog/:id Get a specific blog by ID
+ * @apiName GetBlog
+ * @apiGroup Blogs
+ * @apiVersion 1.0.0
+ * 
+ * @apiDescription This endpoint retrieves a specific published blog by its ID.
+ * 
+ * @apiPermission Authenticated User
+ * 
+ * @apiHeader {String} Authorization Bearer token for user authentication. The token should be included in the `Authorization` header as `Bearer <jwt_token>`.
+ * 
+ * @apiParam {String} id The ID of the blog to retrieve.
+ * 
+ * @apiError {Boolean} error Indicates whether an error occurred (always true).
+ * @apiError {String} message Error message describing what went wrong.
+ * 
+ * @apiExample {json} Request Example:
+ * GET /blogs/60f5a13d6b1f0e12345abcde
+ * 
+ * @apiExample {json} Request Header Example:
+ * Authorization: Bearer <jwt_token>
+ * 
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Blog not found"
+ * }
+ */
+
     async getblog(req,res){
         try {
             const {id} = req.params;
@@ -262,7 +426,7 @@ module.exports ={
       }
     },
 
-    
+
     
     
       
