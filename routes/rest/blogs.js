@@ -235,13 +235,35 @@ module.exports ={
       }
     },
 
-    async getPendingBlogs(req,res){
+    async getDraftBlogs(req, res) {
       try {
-        
+        const {body:{page=1,limit=10}
+      } = req
+
+        const draftBlogs = await Blog.find({ status: "draft", _author: req.user._id })
+          .populate({
+            path: "_author",
+            select: "email name profileImage  -_id", // Include email and name, exclude _id
+            options: { toJSON: { virtuals: true } }, // Ensure virtuals are included
+          }).sort({ createdAt: -1 })
+          .skip((page - 1) * limit)
+          .exec();
+          
+          const totalCount = await Blog.find({ status: "draft", _author: req.user._id }).countDocuments()
+
+        if (!draftBlogs || draftBlogs.length === 0) {
+          return res.status(400).json({ error: true, message: "No draft blogs found" });
+        }
+    
+        return res.status(200).json({ error: false, draftBlogs,totalCount,page,limit });
       } catch (error) {
-        
+        console.log("Error is: ", error);
+        return res.status(400).json({ error: true, message: error.message });
       }
-    }
+    },
+
+    
+    
     
       
     

@@ -15,9 +15,11 @@ const UserSchema = new mongoose.Schema({
     type: String
   },
 
-  firstName: String,
-
-  lastName: String,
+  name:{
+    first: String,
+    last: String,
+  },
+  
 
   email: {
     type: String,
@@ -126,7 +128,7 @@ UserSchema.methods.comparePassword = async function (pw) {
 //       mailer("welcome", {
 //         to: doc.email,
 //         subject: "Welcome!!!",
-//         locals: { email: doc.email, password: doc.generatedPassword, name: `${doc.firstName} ${doc.lastName}` }
+//         locals: { email: doc.email, password: doc.generatedPassword, name: `${doc.first} ${doc.last}` }
 //       });
 //     } catch (error) {
 //       console.error("Error sending welcome email:", error);
@@ -136,18 +138,18 @@ UserSchema.methods.comparePassword = async function (pw) {
 
 
 UserSchema.virtual("name.full").get(function () {
-  const first = (this.firstName === undefined || this.firstName === null)
+  const first = (this.name.first === undefined || this.name.first === null)
     ? ""
-    : this.firstName
-  const last = (this.lastName === undefined || this.lastName === null)
+    : this.name.first
+  const last = (this.name.last === undefined || this.name.last === null)
     ? ""
-    : ` ${this.lastName}`
-  return `${first}${last}`
+    : ` ${this.name.last}`
+  return `${first} ${last}`
 })
 
 UserSchema.virtual("name.full").set(function (v) {
-  this.firstName = v.substr(0, v.indexOf(" "))
-  this.lastName = v.substr(v.indexOf(" ") + 1)
+  this.name.first = v.substr(0, v.indexOf(" "))
+  this.name.last = v.substr(v.indexOf(" ") + 1)
 })
 
 

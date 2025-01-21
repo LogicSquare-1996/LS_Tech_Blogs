@@ -121,7 +121,7 @@ module.exports = {
           .json({ error: true, reason: "Phone number must be a 10-digit numeric value." });
       }
 
-      if (!name || !name.firstName) {
+      if (!name || !name.first) {
         return res
           .status(400)
           .json({ error: true, reason: "Please specify First Name!" });
@@ -149,13 +149,14 @@ module.exports = {
         email,
         phone,
         password,
-        firstName: name.firstName,
-        lastName: name.lastName,
+        name: name,
         username,
         otp, // Save OTP in the database for verification
         isVerified: false, // Add a field in your schema for this
         otpCreatedAt: Date.now(),
       });
+      console.log(user);
+      
       console.log("My Name is: ", user.name.full);
 
 
