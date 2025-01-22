@@ -60,6 +60,14 @@ const BlogSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  likes:{
+    type: Number,
+    default: 0
+  },
+  comments:{
+    type: Number,
+    default: 0
+  },
   slug: {
     type: String
   },

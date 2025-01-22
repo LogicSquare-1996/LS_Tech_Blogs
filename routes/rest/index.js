@@ -12,6 +12,7 @@ const signup = require("./auth/signup")
 const forgotpassword = require("./auth/password")
 //Blogs Routes
 const blogs = require("./blogs")
+const interactions = require("./interactions")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
@@ -27,6 +28,7 @@ router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
 
 router.get("/user/:id", users.get)
 
+//Blogs Routes
 router.post("/createBlog",blogs.post)
 router.post("/blogs",blogs.getBlogs)
 router.get("/blog/:id", blogs.getblog)
@@ -35,4 +37,9 @@ router.get("/deleteBlog/:id",blogs.deleteBlog)
 router.put('/blog/publish/:id',blogs.publishDraftBlog)
 router.get("/blogs/drafts",blogs.getDraftBlogs)
 router.get("/blogs/authors", blogs.getAuthors)
+
+//Blog Interactions Routes
+router.post("/post/interaction/:id", interactions.postInteraction)
+
+
 module.exports = router

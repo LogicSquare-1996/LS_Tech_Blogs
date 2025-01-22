@@ -24,6 +24,9 @@ const BlogInteractionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "BlogInteraction",
   },
+  attachments:{
+    type: String  //Can be image or any attachments
+  },
   isDeleted: { // Indicates whether the interaction is soft-deleted
     type: Boolean,
     default: false,
@@ -33,7 +36,7 @@ const BlogInteractionSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  _likedBy: [ // List of users who liked this interaction
+  _likedBy: [ // List of users who liked this interaction comment or reply
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
