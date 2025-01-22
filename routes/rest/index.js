@@ -34,4 +34,5 @@ router.post("/updateBlog/:id",blogs.updateBlog)
 router.post("/deleteBlog/:id",blogs.deleteBlog)
 router.put('/blog/publish/:id',blogs.publishDraftBlog)
 router.get("/blogs/drafts",blogs.getDraftBlogs)
+router.get("/blogs/authors", blogs.getAuthors)
 module.exports = router
