@@ -1,74 +1,65 @@
 const Blog = require("../../models/blog");
 const History = require("../../models/history");
+const User = require("../../models/user");
 
 module.exports = {
 
   /**
-* @api {post} /createBlog Create a new blog post
-* @apiName CreateBlog
-* @apiGroup Blogs
-* @apiVersion 1.0.0
-* 
-* @apiDescription This endpoint allows an authenticated user to create a new blog post. 
-* Mandatory fields include `title`, `content`, and `tags`. Optionally, you can provide 
-* a `category`, `gitHubLink`, `attachments`, `thumbnail`, and set the publication `status`.
-* If `status` is set to "published", the blog will be marked as published at the current time.
-* 
-* @apiPermission Authenticated User
-* 
-* @apiHeader {String} Authorization Bearer token for user authentication.
-* 
-* @apiBody {String} title The title of the blog post (mandatory).
-* @apiBody {String} content The content of the blog post (mandatory).
-* @apiBody {Array} tags An array of tags associated with the blog post (mandatory).
-* @apiBody {String} [category] The category of the blog post (optional).
-* @apiBody {String} [gitHubLink] A GitHub link associated with the blog post (optional).
-* @apiBody {Array} [attachments] An array of file URLs for attachments (optional).
-* @apiBody {String} [thumbnail] A URL to the thumbnail image of the blog post (optional).
-* @apiBody {String} [status="published"] The publication status of the blog ("published" or "draft").
-* 
-* 
-* @apiError {Boolean} error Indicates whether an error occurred (always true).
-* @apiError {String} message Error message describing what went wrong.
-* 
-* @apiExample {json} Request Example:
-* {
-*   "title": "My First Blog",
-*   "content": "This is the content of the blog.",
-*   "tags": ["Node.js", "API", "Blog"],
-*   "category": "Technology",
-*   "gitHubLink": "https://github.com/user/repo",
-*   "attachments": ["https://example.com/file1.pdf"],
-*   "thumbnail": "https://example.com/image.jpg",
-*   "status": "published"
-* }
-* 
-* @apiSuccessExample {json} Success Response:
-* HTTP/1.1 201 Created
-* {
-*   "message": "Blog created successfully",
-*   "blog": {
-*     "_id": "60f5a13d6b1f0e12345abcde",
-*     "title": "My First Blog",
-*     "content": "This is the content of the blog.",
-*     "tags": ["Node.js", "API", "Blog"],
-*     "category": "Technology",
-*     "gitHubLink": "https://github.com/user/repo",
-*     "attachments": ["https://example.com/file1.pdf"],
-*     "thumbnail": "https://example.com/image.jpg",
-*     "status": "published",
-*     "publishedAt": "2025-01-21T12:34:56.789Z",
-*     "_author": "60f5a13d6b1f0e12345abcd9"
-*   }
-* }
-* 
-* @apiErrorExample {json} Error Response:
-* HTTP/1.1 400 Bad Request
-* {
-*   "error": true,
-*   "message": "Missing mandatory field `title`"
-* }
-*/
+  * @api {post} /createBlog 1.0 Create a New Blog Post
+  * @apiName createBlog
+  * @apiGroup Blog
+  * @apiVersion 1.0.0
+  * @apiPermission Authenticated User
+  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+  *
+  * @apiParam {String} title The title of the blog post (mandatory).
+  * @apiParam {String} content The content of the blog post (mandatory).
+  * @apiParam {Array} tags An array of tags associated with the blog post (mandatory).
+  * @apiParam {String} [category] The category of the blog post (optional).
+  * @apiParam {String} [gitHubLink] A GitHub link associated with the blog post (optional).
+  * @apiParam {Array} [attachments] An array of file URLs for attachments (optional).
+  * @apiParam {String} [thumbnail] A URL to the thumbnail image of the blog post (optional).
+  * @apiParam {String} [status="published"] The publication status of the blog ("published" or "draft").
+  *
+  * @apiExample {json} Request Example:
+  * {
+  *   "title": "My First Blog",
+  *   "content": "This is the content of the blog.",
+  *   "tags": ["Node.js", "API", "Blog"],
+  *   "category": "Technology",
+  *   "gitHubLink": "https://github.com/user/repo",
+  *   "attachments": ["https://example.com/file1.pdf"],
+  *   "thumbnail": "https://example.com/image.jpg",
+  *   "status": "published"
+  * }
+  *
+  * @apiSuccessExample {type} Success-Response:
+  * HTTP/1.1 201 Created
+  * {
+  *   "message": "Blog created successfully",
+  *   "blog": {
+  *     "_id": "60f5a13d6b1f0e12345abcde",
+  *     "title": "My First Blog",
+  *     "content": "This is the content of the blog.",
+  *     "tags": ["Node.js", "API", "Blog"],
+  *     "category": "Technology",
+  *     "gitHubLink": "https://github.com/user/repo",
+  *     "attachments": ["https://example.com/file1.pdf"],
+  *     "thumbnail": "https://example.com/image.jpg",
+  *     "status": "published",
+  *     "publishedAt": "2025-01-21T12:34:56.789Z",
+  *     "_author": "60f5a13d6b1f0e12345abcd9"
+  *   }
+  * }
+  *
+  * @apiErrorExample {json} Error Response:
+  * HTTP/1.1 400 Bad Request
+  * {
+  *   "error": true,
+  *   "message": "Missing mandatory field `title`"
+  * }
+  */
+
 
   async post(req, res) {
     try {
@@ -106,73 +97,65 @@ module.exports = {
   },
 
   /**
-* @api {post} /blogs Get blog posts with filters and pagination
-* @apiName GetBlogs
-* @apiGroup Blogs
-* @apiVersion 2.0.0
-* 
-* @apiDescription This endpoint allows an authenticated user to retrieve a list of published blog posts with filtering, sorting, and pagination. 
-* You can filter by `tags`, `categories`, and search by keywords (`searchQuery`). Blogs can be sorted by recommended posts (based on the user's search history) or by creation date.
-* 
-* @apiPermission Authenticated User
-* 
-* @apiHeader {String} Authorization Bearer token for user authentication.
-* 
-* @apiBody {Number} [page=1] The page number to fetch. Default is 1.
-* @apiBody {Number} [limit=10] The number of blog posts per page. Default is 10.
-* @apiBody {String="recommended", "byDate"} [sortBy="recommended"] The sorting method. Options are `recommended` (based on user history) and `byDate` (based on creation date).
-* @apiBody {Array} [tags=[]] An array of tags to filter blogs by (optional).
-* @apiBody {Array} [categories=[]] An array of categories to filter blogs by (optional).
-* @apiBody {String} [searchQuery=""] A search query to match blogs by title using a case-insensitive regex (optional).
-* 
-* 
-* @apiError {Boolean} error Indicates whether an error occurred (always true).
-* @apiError {String} message Error message describing what went wrong.
-* 
-* @apiExample {json} Request Example:
-* {
-*   "page": 1,
-*   "limit": 10,
-*   "sortBy": "recommended",
-*   "tags": ["Node.js", "API"],
-*   "categories": ["Technology"],
-*   "searchQuery": "blog"
-* }
-* 
-* @apiSuccessExample {json} Success Response:
-* HTTP/1.1 200 OK
-* {
-*   "error": false,
-*   "blogs": [
-*     {
-*       "_id": "60f5a13d6b1f0e12345abcde",
-*       "title": "My First Blog",
-*       "content": "This is the content of the blog.",
-*       "tags": ["Node.js", "API"],
-*       "category": "Technology",
-*       "gitHubLink": "https://github.com/user/repo",
-*       "attachments": ["https://example.com/file1.pdf"],
-*       "thumbnail": "https://example.com/image.jpg",
-*       "status": "published",
-*       "publishedAt": "2025-01-21T12:34:56.789Z",
-*       "_author": "60f5a13d6b1f0e12345abcd9",
-*       "frequency": 5
-*     }
-*   ]
-* }
-* 
-* @apiErrorExample {json} Error Response:
-* HTTP/1.1 400 Bad Request
-* {
-*   "error": true,
-*   "message": "Invalid pagination parameters."
-* }
-*/
+ * @api {post} /blogs 2.0 Get Blog Posts with Filters and Pagination
+ * @apiName getBlogs
+ * @apiGroup Blog
+ * @apiVersion 2.0.0
+ * @apiPermission Authenticated User
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+ *
+ * @apiParam {Number} [page=1] The page number to fetch. Default is 1.
+ * @apiParam {Number} [limit=10] The number of blog posts per page. Default is 10.
+ * @apiParam {String="recommended", "byDate"} [sortBy="recommended"] The sorting method. Options are `recommended` (based on user history) and `byDate` (based on creation date).
+ * @apiParam {Array} [tags=[]] An array of tags to filter blogs by (optional).
+ * @apiParam {Array} [categories=[]] An array of categories to filter blogs by (optional).
+ * @apiParam {String} [searchQuery=""] A search query to match blogs by title using a case-insensitive regex (optional).
+ *
+ * @apiExample {json} Request Example:
+ * {
+ *   "page": 1,
+ *   "limit": 10,
+ *   "sortBy": "recommended",
+ *   "tags": ["Node.js", "API"],
+ *   "categories": ["Technology"],
+ *   "searchQuery": "blog"
+ * }
+ *
+ * @apiSuccessExample {type} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "blogs": [
+ *     {
+ *       "_id": "60f5a13d6b1f0e12345abcde",
+ *       "title": "My First Blog",
+ *       "content": "This is the content of the blog.",
+ *       "tags": ["Node.js", "API"],
+ *       "category": "Technology",
+ *       "gitHubLink": "https://github.com/user/repo",
+ *       "attachments": ["https://example.com/file1.pdf"],
+ *       "thumbnail": "https://example.com/image.jpg",
+ *       "status": "published",
+ *       "publishedAt": "2025-01-21T12:34:56.789Z",
+ *       "_author": "60f5a13d6b1f0e12345abcd9",
+ *       "frequency": 5
+ *     }
+ *   ]
+ * }
+ *
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Invalid pagination parameters."
+ * }
+ */
+
 
   async getBlogs(req, res) {
     try {
       // Fetch parameters from the body instead of query
-      const { page = 1, limit = 10, sortBy = 'recommended', tags = [], categories = [],authors=[], searchQuery = '' } = req.body;
+      const { page = 1, limit = 10, sortBy = 'recommended', tags = [], categories = [], authors = [], searchQuery = '' } = req.body;
 
       const userId = req.user._id;
 
@@ -244,35 +227,52 @@ module.exports = {
 
 
   /**
-   * @api {get} /blog/:id Get a specific blog by ID
-   * @apiName GetBlog
-   * @apiGroup Blogs
-   * @apiVersion 1.0.0
-   * 
-   * @apiDescription This endpoint retrieves a specific published blog by its ID.
-   * 
-   * @apiPermission Authenticated User
-   * 
-   * @apiHeader {String} Authorization Bearer token for user authentication. The token should be included in the `Authorization` header as `Bearer <jwt_token>`.
-   * 
-   * @apiParam {String} id The ID of the blog to retrieve.
-   * 
-   * @apiError {Boolean} error Indicates whether an error occurred (always true).
-   * @apiError {String} message Error message describing what went wrong.
-   * 
-   * @apiExample {json} Request Example:
-   * GET /blogs/60f5a13d6b1f0e12345abcde
-   * 
-   * @apiExample {json} Request Header Example:
-   * Authorization: Bearer <jwt_token>
-   * 
-   * @apiErrorExample {json} Error Response:
-   * HTTP/1.1 400 Bad Request
-   * {
-   *   "error": true,
-   *   "message": "Blog not found"
-   * }
-   */
+ * @api {get} /blog/:id 3.0 Get a Specific Blog by ID
+ * @apiName getBlogById
+ * @apiGroup Blog
+ * @apiVersion 3.0.0
+ * @apiPermission Authenticated User
+ * 
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ * 
+ * @apiParam {String} id The ID of the blog to retrieve.
+ * 
+ * @apiDescription This endpoint retrieves a specific published blog by its ID.
+ * 
+ * @apiExample {json} Request Example:
+ * GET /blog/60f5a13d6b1f0e12345abcde
+ * 
+ * @apiExample {json} Request Header Example:
+ * Authorization: Bearer <jwt_token>
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "blog": {
+ *     "_id": "60f5a13d6b1f0e12345abcde",
+ *     "title": "My First Blog",
+ *     "content": "This is the content of the blog.",
+ *     "tags": ["Node.js", "API"],
+ *     "category": "Technology",
+ *     "gitHubLink": "https://github.com/user/repo",
+ *     "attachments": ["https://example.com/file1.pdf"],
+ *     "thumbnail": "https://example.com/image.jpg",
+ *     "status": "published",
+ *     "publishedAt": "2025-01-21T12:34:56.789Z",
+ *     "_author": "60f5a13d6b1f0e12345abcd9",
+ *     "frequency": 5
+ *   }
+ * }
+ * 
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Blog not found"
+ * }
+ */
+
 
   async getblog(req, res) {
     try {
@@ -285,6 +285,82 @@ module.exports = {
       return res.status(400).json({ error: true, message: error.message })
     }
   },
+
+  /**
+ * @api {post} /blogs/:id 4.0 Update a Blog
+ * @apiName updateBlog
+ * @apiGroup Blogs
+ * @apiVersion 4.0.0
+ * @apiPermission Authenticated User
+ * 
+ * @apiDescription This endpoint allows an authenticated user to update their blog. The blog must belong to the authenticated user.
+ * 
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ * 
+ * @apiParam {String} id The ID of the blog to update.
+ * 
+ * @apiBody {String} [title] The updated title of the blog.
+ * @apiBody {String} [content] The updated content of the blog.
+ * @apiBody {Array} [tags] An array of updated tags for the blog.
+ * @apiBody {String} [category] The updated category for the blog.
+ * @apiBody {String} [gitHubLink] The updated GitHub link for the blog.
+ * @apiBody {Array} [attachments] An array of updated attachments for the blog.
+ * @apiBody {String} [thumbnail] The updated thumbnail URL for the blog.
+ * @apiBody {String="draft","publish"} [status] The updated status of the blog. Use `"draft"` for drafts or `"publish"` to publish the blog.
+ * 
+ * @apiExample {json} Request Example:
+ * PUT /blogs/60f5a13d6b1f0e12345abcde
+ * {
+ *   "title": "Updated Blog Title",
+ *   "content": "Updated blog content",
+ *   "tags": ["Node.js", "Express"],
+ *   "category": "Technology",
+ *   "gitHubLink": "https://github.com/user/repo",
+ *   "attachments": ["https://example.com/file1.pdf"],
+ *   "thumbnail": "https://example.com/image.jpg",
+ *   "status": "publish"
+ * }
+ * 
+ * @apiSuccess {Boolean} success Indicates whether the operation was successful (true if successful).
+ * @apiSuccess {String} message A success message.
+ * @apiSuccess {Object} blog The updated blog object.
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "success": true,
+ *   "message": "Blog updated successfully",
+ *   "blog": {
+ *     "_id": "60f5a13d6b1f0e12345abcde",
+ *     "title": "Updated Blog Title",
+ *     "content": "Updated blog content",
+ *     "tags": ["Node.js", "Express"],
+ *     "category": "Technology",
+ *     "gitHubLink": "https://github.com/user/repo",
+ *     "attachments": ["https://example.com/file1.pdf"],
+ *     "thumbnail": "https://example.com/image.jpg",
+ *     "status": "published",
+ *     "_author": "60f5a13d6b1f0e12345abcd9"
+ *   }
+ * }
+ * 
+ * @apiError {Boolean} error Indicates whether an error occurred (always true).
+ * @apiError {String} message A descriptive message about the error.
+ * 
+ * @apiErrorExample {json} BlogNotFound Error Response:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "Blog not found"
+ * }
+ * 
+ * @apiErrorExample {json} InternalServerError Error Response:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "An unexpected error occurred"
+ * }
+ */
 
   async updateBlog(req, res) {
     try {
@@ -340,6 +416,61 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  /**
+ * @api {get} /blogs/:id Delete Blog (Soft Delete)
+ * @apiName deleteBlog
+ * @apiGroup Blogs
+ * @apiVersion 5.0.0
+ * @apiPermission Authenticated User
+ * 
+ * @apiDescription This endpoint allows an authenticated user to perform a soft delete of a blog they authored. The blog is marked as deleted but not permanently removed from the database.
+ * 
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ * 
+ * @apiParam {String} id The ID of the blog to delete.
+ * 
+ * @apiExample {json} Request Example:
+ * DELETE /blogs/60f5a13d6b1f0e12345abcde
+ * 
+ * @apiExample {json} Request Header Example:
+ * Authorization: Bearer <jwt_token>
+ * 
+ * @apiSuccess {Boolean} success Indicates whether the operation was successful.
+ * @apiSuccess {String} message A message confirming the blog was soft-deleted.
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "success": true,
+ *   "message": "Blog deleted successfully (soft delete)"
+ * }
+ * 
+ * @apiError {Boolean} error Indicates whether an error occurred (always true).
+ * @apiError {String} message A descriptive message about the error.
+ * 
+ * @apiErrorExample {json} Invalid Blog ID Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Invalid Blog ID"
+ * }
+ * 
+ * @apiErrorExample {json} Blog Not Found Error Response:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "No Blog Found"
+ * }
+ * 
+ * @apiErrorExample {json} Internal Server Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "An unexpected error occurred"
+ * }
+ */
+
   async deleteBlog(req, res) {
     try {
       const { id } = req.params;
@@ -404,6 +535,69 @@ module.exports = {
     }
   },
 
+  /**
+   * @api {get} /blogs/drafts 6.0 Get Draft Blogs
+   * @apiName getDraftBlogs
+   * @apiGroup Blogs
+   * @apiVersion 6.0.0
+   *  @apiPermission Authenticated User
+   * 
+   * @apiDescription This endpoint retrieves a paginated list of draft blogs authored by the authenticated user. Draft blogs are those with a status of "draft".
+   * 
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+   * 
+   * @apiParam {Number} [page=1] The page number for pagination.
+   * @apiParam {Number} [limit=10] The number of blogs to retrieve per page.
+   * 
+   * @apiExample {json} Request Example:
+   * GET /blogs/drafts?page=2&limit=5
+   * 
+   * @apiExample {json} Request Header Example:
+   * Authorization: Bearer <jwt_token>
+   * @apiSuccessExample {json} Success Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "draftBlogs": [
+   *     {
+   *       "_id": "60f5a13d6b1f0e12345abcde",
+   *       "title": "Draft Blog Title",
+   *       "content": "This is a draft blog content...",
+   *       "tags": ["tag1", "tag2"],
+   *       "category": "Category Name",
+   *       "status": "draft",
+   *       "_author": {
+   *         "email": "user@example.com",
+   *         "name": "John Doe",
+   *         "profileImage": "http://example.com/image.jpg"
+   *       },
+   *       "createdAt": "2024-12-01T12:00:00.000Z",
+   *       "updatedAt": "2024-12-02T12:00:00.000Z"
+   *     }
+   *   ],
+   *   "totalCount": 15,
+   *   "page": 2,
+   *   "limit": 5
+   * }
+   * 
+   * @apiError {Boolean} error Indicates whether an error occurred (always true).
+   * @apiError {String} message A descriptive message about the error.
+   * 
+   * @apiErrorExample {json} No Draft Blogs Error Response:
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "message": "No draft blogs found"
+   * }
+   * 
+   * @apiErrorExample {json} Internal Server Error Response:
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "message": "An unexpected error occurred"
+   * }
+  */
+
   async getDraftBlogs(req, res) {
     try {
       const { body: { page = 1, limit = 10 }
@@ -431,59 +625,89 @@ module.exports = {
     }
   },
 
-/**
- * @api {get} /blogs/authors Get Distinct Authors
- * @apiName GetAuthors
- * @apiGroup Blogs
- * 
- * @apiVersion 7.0.0
- * 
- * @apiDescription This endpoint retrieves a list of distinct authors from the Blog collection.
- * 
- * @apiSuccess {Boolean} error Indicates if there was an error or not.
- * @apiSuccess {Array} authors List of distinct authors.
- * 
- * @apiError (400) NoAuthorsFound No authors found in the Blog collection.
- * @apiError (400) InternalServerError If there's any server-side error.
- * 
- * @apiSuccessExample {json} Success-Response:
- *   HTTP/1.1 200 OK
- *   {
- *     "error": false,
- *     "authors": ["Alice", "Bob", "Charlie"]
- *   }
- * 
- * @apiErrorExample {json} Error-Response:
- *   HTTP/1.1 400 Bad Request
- *   {
- *     "error": true,
- *     "message": "No authors found"
- *   }
- * 
- * @apiErrorExample {json} Error-Response:
- *   HTTP/1.1 400 Bad Request
- *   {
- *     "error": true,
- *     "message": "Internal Server Error"
- *   }
- */
+  /**
+   * @api {get} /blogs/authors 7.0 Get Distinct Authors
+   * @apiName getAuthors
+   * @apiGroup Blogs
+   * @apiVersion 7.0.0
+   * @apiPermission Authenticated User
+   * 
+   * @apiDescription This endpoint retrieves a list of distinct authors who have published blogs. The response includes the author's email, full name, and ID.
+   * 
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+   * 
+   * @apiExample {json} Request Example:
+   * GET /blogs/authors
+   * 
+   * @apiExample {json} Request Header Example:
+   * Authorization: Bearer <jwt_token>
+   * 
+   * @apiSuccess {Boolean} error Indicates whether the operation was successful (false if successful).
+   * @apiSuccess {Object[]} authorsList List of distinct authors.
+   * @apiSuccess {String} authorsList.email Author's email address.
+   * @apiSuccess {String} authorsList.name Author's full name.
+   * @apiSuccess {String} authorsList._id Author's unique ID.
+   * 
+   * @apiSuccessExample {json} Success Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "authorsList": [
+   *     {
+   *       "email": "alice@example.com",
+   *       "name": "Alice Doe",
+   *       "_id": "60f5a13d6b1f0e12345abcde"
+   *     },
+   *     {
+   *       "email": "bob@example.com",
+   *       "name": "Bob Smith",
+   *       "_id": "60f5a13d6b1f0e12345abcd1"
+   *     }
+   *   ]
+   * }
+   * 
+   * @apiError {Boolean} error Indicates whether an error occurred (always true).
+   * @apiError {String} message A descriptive message about the error.
+   * 
+   * @apiErrorExample {json} NoAuthorsFound Error Response:
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "message": "No authors found"
+   * }
+   * 
+   * @apiErrorExample {json} InternalServerError Error Response:
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "message": "An unexpected error occurred"
+   * }
+   */
 
-  async getAuthors(req, res){
+
+
+  async getAuthors(req, res) {
     try {
-      const authors = await Blog.distinct('_author').populate({
-        path: "_author",
-        select: "email name ", // Include email and name, exclude _id
-        options: { toJSON: { virtuals: true } }, // Ensure virtuals are included
-      })
-      .exec();
+      const authors = await Blog.distinct('_author').exec();
+
+      const distinctAuthors = await User.find({ _id: { $in: authors } }).select("email name").exec();
+
+      const authorsList = distinctAuthors.map((author) => {
+        return {
+          email: author.email,
+          name: author.name.full,
+          _id: author._id
+        };
+      });
+
       if (!authors || authors.length === 0) {
         return res.status(400).json({ error: true, message: "No authors found" });
       }
-      return res.status(200).json({ error: false, authors });
+      return res.status(200).json({ error: false, authorsList });
     } catch (error) {
-      console.log("Error is:",error);
-      return res.status(400).json({error: true, message: error.message})
-      
+      console.log("Error is:", error);
+      return res.status(400).json({ error: true, message: error.message })
+
     }
   }
 

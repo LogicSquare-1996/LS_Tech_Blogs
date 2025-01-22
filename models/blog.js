@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const BlogInteraction = require('./BlogInteraction')
 
 const BlogSchema = new mongoose.Schema({
   _author: {
@@ -101,5 +102,17 @@ BlogSchema.set('toObject', { virtuals: true });
 // BlogSchema.virtual('likeCount').get(function () {
 //   return this._likes?.length || 0; // Corrected for likes stored in _likes
 // });
+
+BlogSchema.post('remove', async function () {
+  try {
+    // Soft delete all related interactions (likes, comments, replies) for the blog
+    await mongoose.model('BlogInteraction').updateMany(
+      { _blogId: this._id }, // Find interactions related to the blog
+      { $set: { isDeleted: true } } // Soft delete by setting isDeleted to true
+    );
+  } catch (error) {
+    console.error('Error soft deleting interactions for blog: ', error);
+  }
+});
 
 module.exports = mongoose.model('Blog', BlogSchema);
