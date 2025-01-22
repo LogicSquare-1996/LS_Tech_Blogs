@@ -98,7 +98,6 @@ module.exports = {
    * @apiVersion  3.0.0
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
-   *
    */
   async getAwsKey(req, res) {
     try {
