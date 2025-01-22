@@ -1,13 +1,13 @@
 {
-  "name": "express-skeleton-3",
+  "name": "LS Blog Application",
   "version": "1.0.0",
-  "description": "A Skeleton Application",
+  "description": "This is a blog application of Logic Square Technology",
   "sampleUrl": false,
   "defaultVersion": "0.0.0",
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2022-04-06T08:33:38.160Z",
+    "time": "2025-01-22T18:29:15.649Z",
     "url": "http://apidocjs.com",
     "version": "0.17.7"
   }

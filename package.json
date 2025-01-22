@@ -45,7 +45,7 @@
     "bin/"
   ],
   "devDependencies": {
-    "apidoc": "^0.29.0",
+    "apidoc": "^0.17.7",
     "ava": "^4.1.0",
     "eslint": "^8.10.0",
     "eslint-config-airbnb-base": "^15.0.0",

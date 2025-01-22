@@ -7,7 +7,7 @@ module.exports = {
   /**
   * @api {post} /createBlog 1.0 Create a New Blog Post
   * @apiName createBlog
-  * @apiGroup Blog
+  * @apiGroup Blogs
   * @apiVersion 1.0.0
   * @apiPermission Authenticated User
   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
@@ -99,7 +99,7 @@ module.exports = {
   /**
  * @api {post} /blogs 2.0 Get Blog Posts with Filters and Pagination
  * @apiName getBlogs
- * @apiGroup Blog
+ * @apiGroup Blogs
  * @apiVersion 2.0.0
  * @apiPermission Authenticated User
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
@@ -229,7 +229,7 @@ module.exports = {
   /**
  * @api {get} /blog/:id 3.0 Get a Specific Blog by ID
  * @apiName getBlogById
- * @apiGroup Blog
+ * @apiGroup Blogs
  * @apiVersion 3.0.0
  * @apiPermission Authenticated User
  * 

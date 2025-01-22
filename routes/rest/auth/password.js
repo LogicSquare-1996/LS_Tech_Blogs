@@ -8,10 +8,10 @@ const User = require("../../../models/user")
 module.exports = {
   /**
    *
-   * @api {post} /forgotpassword Request to get password reset link in mail
+   * @api {post} /forgotpassword 7.0 Request to get password reset link in mail
    * @apiName forgotPassword
    * @apiGroup Auth
-   * @apiVersion  1.0.0
+   * @apiVersion  7.0.0
    * @apiPermission Public
    *
    *
@@ -81,10 +81,10 @@ module.exports = {
 
   /**
    *
-   * @api {post} /resetpassword Request to set a new password
+   * @api {post} /resetpassword 8.0 Request to set a new password
    * @apiName resetPassword
    * @apiGroup Auth
-   * @apiVersion  1.0.0
+   * @apiVersion  8.0.0
    * @apiPermission Public
    *
    *

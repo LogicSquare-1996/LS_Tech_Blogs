@@ -5,7 +5,7 @@ const BlogInteraction = require("../../models/BlogInteraction");
 module.exports ={
 
   /**
- * @api {post} /blog/:id/interaction Post Blog Interaction
+ * @api {post} /blog/:id/interaction 1.0 Post Blog Interaction
  * @apiName PostBlogInteraction
  * @apiGroup BlogInteraction
  * @apiVersion 1.0.0

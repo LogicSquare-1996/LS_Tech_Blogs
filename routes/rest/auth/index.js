@@ -12,10 +12,10 @@ const ALLOWED_EMAILS = ['logic-square.com', 'mbera829@gmail.com'];
 module.exports = {
   /**
    *
-   * @api {post} /login 1.0 User login
+   * @api {post} /login 4.0 User login
    * @apiName userLogin
    * @apiGroup Auth
-   * @apiVersion  1.0.0
+   * @apiVersion  4.0.0
    * @apiPermission Public
    *
    *
@@ -92,10 +92,10 @@ module.exports = {
 
   /**
    *
-   * @api {get} /awstempcreds 3.0 login user get temporary aws key
+   * @api {get} /awstempcreds 6.0 login user get temporary aws key
    * @apiName GetAwsKey
    * @apiGroup Auth
-   * @apiVersion  3.0.0
+   * @apiVersion  6.0.0
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
    *
@@ -130,10 +130,10 @@ module.exports = {
 
   /**
    * Sign in with Google account
-   * @api {post} /google-signin 2.0 Google signin
+   * @api {post} /google-signin 5.0 Google signin
    * @apiName googleSignin
    * @apiGroup Auth
-   * @apiVersion  2.0.0
+   * @apiVersion  5.0.0
    * @apiPermission Public
    *
    * @apiParam  {String} idToken Google Authentication token

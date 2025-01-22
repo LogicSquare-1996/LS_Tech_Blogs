@@ -3,7 +3,7 @@ const User = require("../../models/user")
 module.exports = {
   /**
     *
-    * @api {get} /user/:id get user details
+    * @api {get} /user/:id 1.0 get user details
     * @apiName userDetails
     * @apiGroup User
     * @apiVersion  1.0.0
