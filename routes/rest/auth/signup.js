@@ -5,7 +5,7 @@ const moment = require("moment");
 
 module.exports = {
   /**
- * @api {post} /signup User Signup
+ * @api {post} /signup 1.0 User Signup
  * @apiName UserSignup
  * @apiGroup Auth
  * @apiVersion 1.0.0
@@ -195,7 +195,7 @@ module.exports = {
 
   /**
    * Verify user's email
-   * @api {post} /verify Verify user's email
+   * @api {post} /verify 2.0 Verify user's email
    * @apiName verifyEmail
    * @apiGroup Auth
    * @apiVersion  2.0.0
@@ -265,7 +265,7 @@ module.exports = {
   },
 
   /**
-   * @api {post} /resendOTP Resend OTP for Email Verification
+   * @api {post} /resendOTP 3.0 Resend OTP for Email Verification
    * @apiName resendOTP
    * @apiGroup Auth
    * @apiVersion  3.0.0
