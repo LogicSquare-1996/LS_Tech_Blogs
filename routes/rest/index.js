@@ -40,6 +40,10 @@ router.get("/blogs/authors", blogs.getAuthors)
 
 //Blog Interactions Routes
 router.post("/post/interaction/:id", interactions.postInteraction)
+router.get("/post/likes/:id",interactions.getLikes)
+
+
+router.post('/post/deleteinteraction/:id',interactions.deleteInteraction)
 
 
 module.exports = router
