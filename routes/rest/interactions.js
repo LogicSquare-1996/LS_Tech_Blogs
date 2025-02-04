@@ -279,6 +279,49 @@ module.exports = {
     }
   },
 
+  async  likeCommentOrReply(req, res) {
+    try {
+      const { like, unlike } = req.body;
+      const interactionId = req.params.id; // The ID of the comment or reply to like/unlike
+      const userId = req.user._id;
+  
+      // Find the comment or reply
+      const interaction = await BlogInteraction.findOne({
+        _id: interactionId,
+        category: "comment", // Applies to both comments and replies
+      }).exec();
+  
+      if (!interaction) {
+        return res.status(404).json({ error: true, message: "Comment or reply not found" });
+      }
+  
+      if (like) {
+        // Check if the user has already liked the comment/reply
+        if (interaction._likedBy.includes(userId)) {
+          return res.status(400).json({ error: true, message: "Already liked this comment/reply" });
+        }
+  
+        // Add user to `_likedBy` array and increase likes count
+        interaction._likedBy.push(userId);
+        interaction.likes += 1;
+      } else if (unlike) {
+        // Check if the user has liked the comment/reply before
+        if (!interaction._likedBy.includes(userId)) {
+          return res.status(400).json({ error: true, message: "You haven't liked this comment/reply" });
+        }
+  
+        // Remove user from `_likedBy` array and decrease likes count
+        interaction._likedBy = interaction._likedBy.filter((id) => id.toString() !== userId.toString());
+        interaction.likes = Math.max(0, interaction.likes - 1);
+      }
+  
+      await interaction.save();
+  
+      return res.json({ error: false, message: like ? "Liked successfully" : "Unliked successfully" });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
 
   /**
    * @api {delete} /blog/:id/interaction/:interactionId 1.0 Delete Blog Interaction
