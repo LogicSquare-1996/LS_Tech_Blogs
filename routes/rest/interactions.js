@@ -279,6 +279,43 @@ module.exports = {
     }
   },
 
+  /**
+ * @api {post} /post/comment/like/:id 4.0 Like or Unlike a Comment/Reply
+ * @apiName LikeCommentOrReply
+ * @apiGroup BlogInteraction
+ * @apiVersion 4.0.0
+ * @apiDescription Allows users to like or unlike a comment or reply on a blog post.
+ * 
+ * * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {String} id The ID of the comment or reply to like or unlike.
+ * @apiParam {Boolean} [like] Set to `true` to like the comment/reply.
+ * @apiParam {Boolean} [unlike] Set to `true` to unlike the comment/reply.
+ *
+ * @apiHeader {String} Authorization User's access token.
+ *
+ * @apiSuccessExample {json} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "message": "Liked successfully"
+ * }
+ *
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "Comment or reply not found"
+ * }
+ *
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Already liked this comment/reply"
+ * }
+ */
+
   async  likeCommentOrReply(req, res) {
     try {
       const { like, unlike } = req.body;
@@ -319,7 +356,7 @@ module.exports = {
   
       return res.json({ error: false, message: like ? "Liked successfully" : "Unliked successfully" });
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message });
+      return res.status(400).json({ error: true, message: error.message });
     }
   },
 
