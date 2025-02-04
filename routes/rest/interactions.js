@@ -256,6 +256,7 @@ module.exports = {
           }
   
           parentInteraction.replyCount += 1;
+          parentInteraction._replies.push(req.user._id);
           await parentInteraction.save();
         }
   
@@ -288,8 +289,7 @@ module.exports = {
       console.log("Error is: ", error);
       return res.status(400).json({ error: true, message: error.message });
     }
-  }
-  ,
+  },
 
   /**
  * @api {post} /post/comment/like/:id 4.0 Like or Unlike a Comment/Reply
