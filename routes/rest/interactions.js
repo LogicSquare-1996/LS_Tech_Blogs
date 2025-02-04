@@ -172,93 +172,97 @@ module.exports = {
   async postInteraction(req, res) {
     try {
       const {
-        body: {
-          category,
-          content,
-          _blogId = req.params._id,
-          _createdBy = req.user._id,
-          isReply = false,
-          parentComment,
-          attachments
-        }, params: {
-          id
-        }
-      } = req
-
-
-
-
+        category,
+        content,
+        isReply = false,
+        parentComment,
+        attachments
+      } = req.body;
+  
+      // Ensure `_blogId` is always correctly assigned
+      const _blogId =  req.params.id; 
+      const _createdBy = req.user._id;
+  
+      if (!_blogId) return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
+  
       let imageUrl;
       if (req.user.profileImage !== undefined) imageUrl = req.user.profileImage;
+  
+      if (isReply && !parentComment)  return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
 
-      if (isReply === true && !parentComment) return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
-
+  
       if (!category) return res.status(400).json({ error: true, message: "Missing mandatory field `category`" });
-
+      
+  
       if (category === "comment" && !content) return res.status(400).json({ error: true, message: "Missing mandatory field `content`" });
-
-      const blog = await Blog.findOne({ _id: id, status: "published" }).populate("_author").exec();
-      if (!blog) return res.status(400).json({ error: true, message: "Blog not found" });
-
-      //Like logic 
+  
+      // Find the blog
+      const blog = await Blog.findOne({ _id: _blogId, status: "published" })
+        .populate({ path: "_author", select: "name profileImage email" })
+        .exec();
+  
+      if (!blog)  return res.status(400).json({ error: true, message: "Blog not found" });
+      
+  
+      // Handle "like" category
       if (category === "like") {
-        // Check if the user has already liked this blog
         const checkLike = await BlogInteraction.findOne({
           category: "like",
-          _blogId: id,
-          _createdBy: _createdBy,
+          _blogId,
+          _createdBy
         });
-
+  
         if (checkLike) {
           return res.status(400).json({
             error: true,
             message: "You have already liked this blog",
           });
         }
-
-        // Check if the user is the blog author
-        if (String(_createdby) === String(blog._author._id)) {
+  
+        if (String(_createdBy) === String(blog._author._id)) {
           return res.status(400).json({
             error: true,
             message: "You cannot like your own blog",
           });
         }
-
-        // Increment likes
+  
         blog.likes += 1;
         await blog.save();
       }
-      //Comment Reply Logic
+  
+      // Handle "comment" or "reply" category
       if (category === "comment") {
-        if (!content)
+        if (!content) {
           return res.status(400).json({
             error: true,
             message: "Missing mandatory field `content` for comment",
           });
-
-        if (isReply && !parentComment)
+        }
+  
+        if (isReply && !parentComment) {
           return res.status(400).json({
             error: true,
             message: "Missing mandatory field `parentComment` for reply",
           });
-
+        }
+  
         if (isReply) {
-          const parentInteraction = await BlogInteraction.findOne({ _id: parentComment }).exec(); // Fixed: Added `{ _id: parentComment }` for proper query
-
-          if (!parentInteraction)
+          const parentInteraction = await BlogInteraction.findOne({ _id: parentComment }).exec();
+          if (!parentInteraction) {
             return res.status(404).json({
               error: true,
               message: "Parent comment not found",
             });
-
-          parentInteraction.replyCount += 1; // Increment reply count on parent comment
+          }
+  
+          parentInteraction.replyCount += 1;
           await parentInteraction.save();
         }
-
-        blog.comments += 1; // Increment comment count on the blog
+  
+        blog.comments += 1;
         await blog.save();
       }
-
+  
       // Create interaction
       const interaction = await BlogInteraction.create({
         category,
@@ -269,15 +273,23 @@ module.exports = {
         _parentComment: isReply ? parentComment : null,
         attachments,
       });
-
-      return res.status(201).json({ error: false, interaction, message: `${category === "like" ? "Liked" : category === "comment" && isReply ? "Replied successfully" : "Commented successfully"}` });
-
+  
+      return res.status(201).json({
+        error: false,
+        interaction,
+        message: category === "like"
+          ? "Liked"
+          : category === "comment" && isReply
+            ? "Replied successfully"
+            : "Commented successfully"
+      });
+  
     } catch (error) {
       console.log("Error is: ", error);
-      return res.status(400).json({ error: true, message: error.message })
-
+      return res.status(400).json({ error: true, message: error.message });
     }
-  },
+  }
+  ,
 
   /**
  * @api {post} /post/comment/like/:id 4.0 Like or Unlike a Comment/Reply
