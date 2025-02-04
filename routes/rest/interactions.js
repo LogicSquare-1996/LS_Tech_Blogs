@@ -180,29 +180,36 @@ module.exports = {
       } = req.body;
   
       // Ensure `_blogId` is always correctly assigned
-      const _blogId =  req.params.id; 
+      const _blogId = req.body._blogId || req.params.id; 
       const _createdBy = req.user._id;
   
-      if (!_blogId) return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
+      if (!_blogId) {
+        return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
+      }
   
       let imageUrl;
       if (req.user.profileImage !== undefined) imageUrl = req.user.profileImage;
   
-      if (isReply && !parentComment)  return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
-
+      if (isReply && !parentComment) {
+        return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
+      }
   
-      if (!category) return res.status(400).json({ error: true, message: "Missing mandatory field `category`" });
-      
+      if (!category) {
+        return res.status(400).json({ error: true, message: "Missing mandatory field `category`" });
+      }
   
-      if (category === "comment" && !content) return res.status(400).json({ error: true, message: "Missing mandatory field `content`" });
+      if (category === "comment" && !content) {
+        return res.status(400).json({ error: true, message: "Missing mandatory field `content`" });
+      }
   
       // Find the blog
       const blog = await Blog.findOne({ _id: _blogId, status: "published" })
         .populate({ path: "_author", select: "name profileImage email" })
         .exec();
   
-      if (!blog)  return res.status(400).json({ error: true, message: "Blog not found" });
-      
+      if (!blog) {
+        return res.status(400).json({ error: true, message: "Blog not found" });
+      }
   
       // Handle "like" category
       if (category === "like") {
@@ -230,6 +237,8 @@ module.exports = {
         await blog.save();
       }
   
+      let replyStored = false;
+  
       // Handle "comment" or "reply" category
       if (category === "comment") {
         if (!content) {
@@ -256,7 +265,6 @@ module.exports = {
           }
   
           parentInteraction.replyCount += 1;
-          parentInteraction._replies.push(req.user._id);
           await parentInteraction.save();
         }
   
@@ -264,7 +272,7 @@ module.exports = {
         await blog.save();
       }
   
-      // Create interaction
+      // Create interaction (comment/reply)
       const interaction = await BlogInteraction.create({
         category,
         content,
@@ -275,14 +283,25 @@ module.exports = {
         attachments,
       });
   
+      // If it's a reply, store reply ID in the parent comment's `replies` array
+      if (isReply) {
+        const parentInteraction = await BlogInteraction.findOneAndUpdate(
+          { _id: parentComment },
+          { $push: { _replies: interaction._id } }, // Store reply ID in `replies`
+          { new: true }
+        );
+  
+        if (parentInteraction) {
+          replyStored = true;
+        }
+      }
+  
       return res.status(201).json({
         error: false,
         interaction,
-        message: category === "like"
-          ? "Liked"
-          : category === "comment" && isReply
-            ? "Replied successfully"
-            : "Commented successfully"
+        message: isReply
+          ? `Replied successfully${replyStored ? " and reply stored in parent comment" : ""}`
+          : "Commented successfully"
       });
   
     } catch (error) {
