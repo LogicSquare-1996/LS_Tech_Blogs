@@ -40,7 +40,8 @@ router.get("/blogs/authors", blogs.getAuthors)
 
 //Blog Interactions Routes
 router.post("/post/interaction/:id", interactions.postInteraction)
-router.get("/post/likes/:id",interactions.getLikes)
+router.get("/post/likes/:id",interactions.getLikes)           // id is BlogId
+router.get("/post/comments/:id",interactions.getComments)   // id is BlogId
 
 
 router.post('/post/deleteinteraction/:id',interactions.deleteInteraction)

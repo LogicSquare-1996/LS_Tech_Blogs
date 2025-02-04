@@ -22,7 +22,7 @@ module.exports = {
  *         {
  *           "_id": "interactionId1",
  *           "category": "like",
- *           "_createdBy": {
+ *           "_createdBy": {          // User who liked the post
  *             "name": "John Doe",
  *             "email": "john.doe@example.com"
  *           },
@@ -88,6 +88,16 @@ module.exports = {
       if(!interactions) return res.status(400).json({error: true, message: "Interactions not found"})
       return res.status(200).json({error: false, interactions})
 
+    } catch (error) {
+      console.log("Error is: ", error);
+      return res.status(400).json({ error: true, message: error.message });
+      
+    }
+  },
+  
+  async getComments(req,res){
+    try {
+      
     } catch (error) {
       console.log("Error is: ", error);
       return res.status(400).json({ error: true, message: error.message });
