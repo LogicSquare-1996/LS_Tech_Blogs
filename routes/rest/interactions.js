@@ -95,15 +95,141 @@ module.exports = {
     }
   },
   
-  async getComments(req,res){
+  /**
+ * @api {post} /post/comments/:id 4.0 Get Top Level Comments for a Blog
+ * @apiName GetComments
+ * @apiGroup Blog
+ * @apiVersion 4.0.0
+ * @apiPermission User (Authenticated with JWT)
+ *
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {Number} [page=1] Page number for pagination.
+ * @apiParam {Number} [limit=10] Number of comments per page.
+ *
+ *
+ * @apiError {Boolean} error Status of the request.
+ * @apiError {String} message Error message.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "comments": [
+ *     {
+ *       "_id": "654321abc",
+ *       "content": "This is a great blog post!",
+ *       "_createdBy": {
+ *         "username": "JohnDoe",
+ *         "profilePicture": "https://example.com/profile.jpg"
+ *       }
+ *     }
+ *   ],
+ *   "totalComments": 5,
+ *   "totalPages": 1,
+ *   "currentPage": 1
+ * }
+ *
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "Server error"
+ * }
+ */
+
+  async getComments(req, res) {
     try {
-      
+      const { page = 1, limit = 10 } = req.body;
+      const skip = (page - 1) * limit;
+  
+      const comments = await BlogInteraction.find({
+        _blogId: req.params.id,
+        category: "comment",
+        isDeleted: false,
+        isReply: false
+      })
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .populate("_createdBy", "username name profileImage")
+      .exec();
+  
+      const totalComments = await BlogInteraction.countDocuments({
+        _blogId: req.params.id,
+        category: "comment",
+        isDeleted: false,
+        isReply: false
+      });
+  
+      return res.json({
+        error: false,
+        comments,
+        totalComments,
+        totalPages: Math.ceil(totalComments / limit),
+        currentPage: Number(page),
+      });
     } catch (error) {
-      console.log("Error is: ", error);
-      return res.status(400).json({ error: true, message: error.message });
-      
+      console.error("Error fetching comments:", error);
+      return res.status(500).json({ error: true, message: "Server error" });
     }
   },
+
+  async getReplies(req, res) {
+    try {
+      const {
+        body: { skip = 0, limit = 10 },
+        params: { id },
+      } = req;
+  
+      // Validate the comment ID
+      if (!id || id === "") {
+        return res.status(400).json({ error: true, message: "Mandatory param `id` is missing or invalid" });
+      }
+  
+      // Fetch replies and count total replies in parallel using Promise.all
+      const [replies, totalReplies] = await Promise.all([
+        BlogInteraction.find({
+          _parentComment: id, // Parent comment reference
+          isDeleted: false, // Ensure replies are not deleted
+          isReply: true, // Ensure this is a reply
+        })
+          .sort({ updatedAt: -1 }) // Sort by creation date, descending
+          .skip(Number(skip)) // Apply pagination skip
+          .populate({
+            path: "_createdBy", // Populate user who created the reply
+            select: "_id username name profilePicture",
+          })
+          .populate({
+            path: "_likedBy", // Populate users who liked the reply
+            select: "_id username",
+          })
+          .populate({
+            path: "_blogId", // Populate the blog associated with the reply
+            select: "title", // Adjust fields to return
+          })
+          .exec(),
+  
+        BlogInteraction.countDocuments({
+          _parentComment:id, // Parent comment reference
+          isDeleted: false, // Ensure replies are not deleted
+          isReply: true, // Ensure this is a reply
+        }).exec(),
+      ]);
+      const totalPages = Math.ceil(totalReplies / limit); // Total pages
+      const currentPage = Math.ceil(skip / limit) + 1; // Current page based on skip and limit
+  
+      return res.status(200).json({error:false,
+        replies, // Paginated list of replies
+        totalReplies, // Total count of replies
+        totalPages,
+        currentPage,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ error: true, message: error.message });
+    }
+  }
+  ,
 
   /**
  * @api {post} /blog/:id/interaction 1.0 Post Blog Interaction
@@ -311,13 +437,13 @@ module.exports = {
   },
 
   /**
- * @api {post} /post/comment/like/:id 4.0 Like or Unlike a Comment/Reply
+ * @api {post} /post/comment/like/:id 3.0 Like or Unlike a Comment/Reply
  * @apiName LikeCommentOrReply
  * @apiGroup BlogInteraction
- * @apiVersion 4.0.0
+ * @apiVersion 3.0.0
  * @apiDescription Allows users to like or unlike a comment or reply on a blog post.
  * 
- * * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
  *
  * @apiParam {String} id The ID of the comment or reply to like or unlike.
  * @apiParam {Boolean} [like] Set to `true` to like the comment/reply.
