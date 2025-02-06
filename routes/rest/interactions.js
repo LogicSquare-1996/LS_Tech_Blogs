@@ -149,7 +149,7 @@ module.exports = {
         isDeleted: false,
         isReply: false
       })
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .populate("_createdBy", "username name profileImage")
       .exec();
@@ -173,6 +173,59 @@ module.exports = {
       return res.status(500).json({ error: true, message: "Server error" });
     }
   },
+
+  /**
+ * @api {post} /post/replies/:id  5.0.0 Get Replies for a Comment
+ * @apiName GetReplies
+ * @apiGroup Blog
+ * @apiVersion 5.0.0
+ * @apiPermission User (Authenticated with JWT)
+ *
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {String} id Comment ID whose replies are to be fetched (sent as a URL parameter).
+ * @apiParam {Number} [skip=0] Number of replies to skip for pagination.
+ * @apiParam {Number} [limit=10] Number of replies to return per request.
+ *
+ *
+ * @apiError {Boolean} error Status of the request.
+ * @apiError {String} message Error message.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "replies": [
+ *     {
+ *       "_id": "65d431abc",
+ *       "content": "Great point! I completely agree.",
+ *       "_createdBy": {
+ *         "_id": "61234abcd",
+ *         "username": "JaneDoe",
+ *         "name": "Jane Doe",
+ *         "profilePicture": "https://example.com/profile.jpg"
+ *       },
+ *       "_likedBy": [
+ *         { "_id": "67890xyz", "username": "JohnDoe" }
+ *       ],
+ *       "_blogId": {
+ *         "title": "Understanding JavaScript Closures"
+ *       }
+ *     }
+ *   ],
+ *   "totalReplies": 5,
+ *   "totalPages": 1,
+ *   "currentPage": 1
+ * }
+ *
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Mandatory param `id` is missing or invalid"
+ * }
+ */
+
 
   async getReplies(req, res) {
     try {
@@ -518,97 +571,158 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /blog/:id/interaction/:interactionId 1.0 Delete Blog Interaction
-   * @apiName DeleteBlogInteraction
-   * @apiGroup BlogInteraction
-   * @apiVersion 1.0.0
-   * 
-   * @apiDescription Deletes a comment or reply from a blog post interaction.
-   * 
-   * @apiParam {String} id The ID of the blog post.
-   * @apiParam {String} interactionId The ID of the interaction (comment or reply).
-   * 
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
-   * 
-   * @apiError {Boolean} error Indicates if there was an error.
-   * @apiError {String} message A descriptive error message.
-   * 
-   * @apiErrorExample {json} Blog Not Found (400):
-   * HTTP/1.1 400 Bad Request
-   * {
-   *   "error": true,
-   *   "message": "Blog not found"
-   * }
-   * 
-   * @apiErrorExample {json} Interaction Not Found (404):
-   * HTTP/1.1 404 Not Found
-   * {
-   *   "error": true,
-   *   "message": "Interaction not found"
-   * }
-   * 
-   * @apiErrorExample {json} Cannot Delete Parent Comment (400):
-   * HTTP/1.1 400 Bad Request
-   * {
-   *   "error": true,
-   *   "message": "Cannot delete the parent comment"
-   * }
-   * 
-   * @apiErrorExample {json} Server Error (500):
-   * HTTP/1.1 500 Internal Server Error
-   * {
-   *   "error": true,
-   *   "message": "Error message from server"
-   * }
-   */
+ * @api {put} /api/blog/comment/:id  6.0.0. Update a Comment
+ * @apiName UpdateComment
+ * @apiGroup Blog
+ * @apiVersion 6.0.0
+ * @apiPermission User (Authenticated with JWT)
+ *
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {String} id Comment ID to be updated (sent as a URL parameter).
+ * @apiParam {String} content The updated comment content.
+ *
+ * @apiError {Boolean} error Status of the request.
+ * @apiError {String} message Error message.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "message": "Updated successfully"
+ * }
+ *
+ * @apiErrorExample {json} Missing Content:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Missing mandatory field `content`"
+ * }
+ *
+ * @apiErrorExample {json} Comment Not Found:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "Comment not found"
+ * }
+ *
+ * @apiErrorExample {json} Server Error:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Internal server error"
+ * }
+ */
+
+  async updateComment(req, res){
+    try {
+      const {content} =req.body
+
+      if(!content) res.status(400).json({error: true, message: "Missing mandatory field `content`"})
+      
+      let interaction = await BlogInteraction.findOne({_id: req.params.id, category: "comment", _createdBy: req.user._id}).exec()
+
+      if(!interaction) return res.status(404).json({error: true, message: "Comment not found"})
+
+      interaction.content = content
+      await interaction.save()
+
+      return res.json({error: false, message: "Updated successfully"})
+      
+    } catch (error) {
+      console.log("Error is: ", error);
+      return res.status(400).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+ * @api {delete} /post/deleteinteraction/:id  7.0.0 Delete Interaction
+ * @apiName DeleteInteraction
+ * @apiGroup Blog
+ * @apiVersion 7.0.0
+ * @apiPermission User (Authenticated with JWT)
+ * 
+ * @apiParam {String} id The unique ID of the interaction (comment or reply) to be deleted.
+ * 
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ * 
+ * @apiSuccess {Boolean} error false Indicates the request was successful.
+ * @apiSuccess {String} message Success message, e.g., "Interaction deleted successfully".
+ * 
+ * @apiError {Boolean} error true Indicates the request failed.
+ * @apiError {String} message Error message detailing the issue.
+ * 
+ * @apiExample {curl} Example usage:
+ *     curl -X DELETE "http://localhost:3000/blog-interactions/12345" \
+ *     -H "Authorization: Bearer <your_jwt_token>"
+ * 
+ * @apiExample {json} Success Response:
+ *   HTTP/1.1 200 OK
+ *   {
+ *     "error": false,
+ *     "message": "Interaction deleted successfully"
+ *   }
+ * 
+ * @apiExample {json} Error Response (Interaction already deleted):
+ *   HTTP/1.1 400 Bad Request
+ *   {
+ *     "error": true,
+ *     "message": "Interaction has already been deleted"
+ *   }
+ * 
+ * @apiExample {json} Error Response (Permission denied):
+ *   HTTP/1.1 403 Forbidden
+ *   {
+ *     "error": true,
+ *     "message": "You cannot delete this reply"
+ *   }
+ */
+
 
   async deleteInteraction(req, res) {
     try {
-      const { id, interactionId } = req.params;
-      const { _createdBy } = req.user; // Logged in user
-
-      // Find the blog post
-      const blog = await Blog.findById(id);
-      if (!blog) {
-        return res.status(400).json({ error: true, message: "Blog not found" });
-      }
-
-      // Find the interaction (comment or reply)
-      const interaction = await BlogInteraction.findById(interactionId);
-      if (!interaction) {
-        return res.status(404).json({ error: true, message: "Interaction not found" });
-      }
-
-      // Check if the logged-in user is the creator of the interaction
-      if (String(interaction._createdBy) !== String(_createdBy)) {
-        return res.status(400).json({ error: true, message: "You cannot delete this interaction" });
-      }
-
-      // If it's a reply, update the parent comment's reply count
-      if (interaction.isReply) {
-        const parentComment = await BlogInteraction.findById(interaction._parentComment);
-        if (!parentComment) {
-          return res.status(400).json({ error: true, message: "Parent comment not found" });
-        }
-        parentComment.replyCount -= 1; // Decrease reply count
-        await parentComment.save();
-      }
-
-      // Decrement comment or like count on the blog
+      const { id } = req.params;
+  
+      const interaction = await BlogInteraction.findOne({ _id: id, isDeleted: false });
+  
+      if (!interaction)  return res.status(404).json({error: true, message: "Interaction not found" });
+  
+      interaction.isDeleted = true;
+      await interaction.save();
+  
+      const blog = await Blog.findOne({ _id: interaction._blogId });
+  
       if (interaction.category === "comment") {
-        blog.comments -= 1;
+        if (!interaction._parentComment) {
+          // Main comment: Soft delete all replies
+          const replies = await BlogInteraction.find({ _parentComment: interaction._id, isDeleted: false });
+  
+          await BlogInteraction.updateMany(
+            { _parentComment: interaction._id },
+            { $set: { isDeleted: true } }
+          );
+  
+          const deletedCount = replies.length + 1; // Main comment + replies
+          blog.comments -= deletedCount;
+        } else {
+          // It's a reply
+          await BlogInteraction.updateOne(
+            { _id: interaction._parentComment },
+            { $inc: { replyCount: -1 } }
+          );
+  
+          blog.comments -= 1;
+        }
       }
+  
       await blog.save();
-
-      // Delete the interaction (comment or reply)
-      await interaction.remove();
-
-      return res.status(200).json({ error: false, message: "Interaction deleted successfully" });
+  
+      return res.status(200).json({error: true, message: "Interaction deleted successfully" });
     } catch (error) {
-      console.log("Error is: ", error);
-      return res.status(500).json({ error: true, message: "Server error" });
+      return res.status(400).json({error: true, message: "Internal server error" });
     }
-  },
+  }  
+  ,
 
 
 

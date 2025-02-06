@@ -669,6 +669,432 @@
     "groupTitle": "Auth"
   },
   {
+    "type": "delete",
+    "url": "/post/deleteinteraction/:id",
+    "title": "7.0.0 Delete Interaction",
+    "name": "DeleteInteraction",
+    "group": "Blog",
+    "version": "7.0.0",
+    "permission": [
+      {
+        "name": "User (Authenticated with JWT)"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique ID of the interaction (comment or reply) to be deleted.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>false Indicates the request was successful.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message, e.g., &quot;Interaction deleted successfully&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>true Indicates the request failed.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message detailing the issue.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "curl -X DELETE \"http://localhost:3000/blog-interactions/12345\" \\\n-H \"Authorization: Bearer <your_jwt_token>\"",
+        "type": "curl"
+      },
+      {
+        "title": "Success Response:",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Interaction deleted successfully\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Error Response (Interaction already deleted):",
+        "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Interaction has already been deleted\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Error Response (Permission denied):",
+        "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"message\": \"You cannot delete this reply\"\n}",
+        "type": "json"
+      }
+    ],
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "Blog"
+  },
+  {
+    "type": "post",
+    "url": "/post/comments/:id",
+    "title": "4.0 Get Top Level Comments for a Blog",
+    "name": "GetComments",
+    "group": "Blog",
+    "version": "4.0.0",
+    "permission": [
+      {
+        "name": "User (Authenticated with JWT)"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of comments per page.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"comments\": [\n    {\n      \"_id\": \"654321abc\",\n      \"content\": \"This is a great blog post!\",\n      \"_createdBy\": {\n        \"username\": \"JohnDoe\",\n        \"profilePicture\": \"https://example.com/profile.jpg\"\n      }\n    }\n  ],\n  \"totalComments\": 5,\n  \"totalPages\": 1,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "Blog"
+  },
+  {
+    "type": "get",
+    "url": "/post/likes/:id",
+    "title": "2.0 likes Get Likes for a Blog",
+    "name": "GetLikes",
+    "group": "Blog",
+    "version": "2.0.0",
+    "description": "<p>Retrieve all likes for a specific blog post along with details about the users who liked the post and blog details.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the blog to retrieve likes for.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"interactions\": [\n    {\n      \"_id\": \"interactionId1\",\n      \"category\": \"like\",\n      \"_createdBy\": {          // User who liked the post\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe@example.com\"\n      },\n      \"_blogId\": {\n        \"title\": \"Sample Blog Title\",\n        \"content\": \"This is the blog content.\",\n        \"_author\": {\n          \"name\": \"Author Name\",\n          \"profileImage\": \"author-profile.jpg\",\n          \"email\": \"author@example.com\"\n        }\n      }\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if an error occurred.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message explaining the cause.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Blog Not Found:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Blog not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Interactions Not Found:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Interactions not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "Blog"
+  },
+  {
+    "type": "post",
+    "url": "/post/replies/:id",
+    "title": "5.0.0 Get Replies for a Comment",
+    "name": "GetReplies",
+    "group": "Blog",
+    "version": "5.0.0",
+    "permission": [
+      {
+        "name": "User (Authenticated with JWT)"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Comment ID whose replies are to be fetched (sent as a URL parameter).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "skip",
+            "defaultValue": "0",
+            "description": "<p>Number of replies to skip for pagination.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of replies to return per request.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Mandatory param `id` is missing or invalid\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"replies\": [\n    {\n      \"_id\": \"65d431abc\",\n      \"content\": \"Great point! I completely agree.\",\n      \"_createdBy\": {\n        \"_id\": \"61234abcd\",\n        \"username\": \"JaneDoe\",\n        \"name\": \"Jane Doe\",\n        \"profilePicture\": \"https://example.com/profile.jpg\"\n      },\n      \"_likedBy\": [\n        { \"_id\": \"67890xyz\", \"username\": \"JohnDoe\" }\n      ],\n      \"_blogId\": {\n        \"title\": \"Understanding JavaScript Closures\"\n      }\n    }\n  ],\n  \"totalReplies\": 5,\n  \"totalPages\": 1,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "Blog"
+  },
+  {
+    "type": "post",
+    "url": "/post/comment/like/:id",
+    "title": "3.0 Like or Unlike a Comment/Reply",
+    "name": "LikeCommentOrReply",
+    "group": "BlogInteraction",
+    "version": "3.0.0",
+    "description": "<p>Allows users to like or unlike a comment or reply on a blog post.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the comment or reply to like or unlike.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "like",
+            "description": "<p>Set to <code>true</code> to like the comment/reply.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "unlike",
+            "description": "<p>Set to <code>true</code> to unlike the comment/reply.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Liked successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Comment or reply not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Already liked this comment/reply\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "BlogInteraction"
+  },
+  {
     "type": "post",
     "url": "/blog/:id/interaction",
     "title": "1.0 Post Blog Interaction",
@@ -756,6 +1182,100 @@
     },
     "filename": "routes/rest/interactions.js",
     "groupTitle": "BlogInteraction"
+  },
+  {
+    "type": "put",
+    "url": "/api/blog/comment/:id",
+    "title": "6.0.0. Update a Comment",
+    "name": "UpdateComment",
+    "group": "Blog",
+    "version": "6.0.0",
+    "permission": [
+      {
+        "name": "User (Authenticated with JWT)"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Comment ID to be updated (sent as a URL parameter).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "content",
+            "description": "<p>The updated comment content.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Missing Content:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Missing mandatory field `content`\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Comment Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Comment not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Updated successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "Blog"
   },
   {
     "type": "post",
