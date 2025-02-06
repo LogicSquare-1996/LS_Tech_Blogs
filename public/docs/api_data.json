@@ -673,7 +673,7 @@
     "url": "/post/deleteinteraction/:id",
     "title": "7.0.0 Delete Interaction",
     "name": "DeleteInteraction",
-    "group": "Blog",
+    "group": "BlogInteraction",
     "version": "7.0.0",
     "permission": [
       {
@@ -769,14 +769,14 @@
       }
     ],
     "filename": "routes/rest/interactions.js",
-    "groupTitle": "Blog"
+    "groupTitle": "BlogInteraction"
   },
   {
     "type": "post",
     "url": "/post/comments/:id",
     "title": "4.0 Get Top Level Comments for a Blog",
     "name": "GetComments",
-    "group": "Blog",
+    "group": "BlogInteraction",
     "version": "4.0.0",
     "permission": [
       {
@@ -855,14 +855,14 @@
       ]
     },
     "filename": "routes/rest/interactions.js",
-    "groupTitle": "Blog"
+    "groupTitle": "BlogInteraction"
   },
   {
     "type": "get",
     "url": "/post/likes/:id",
     "title": "2.0 likes Get Likes for a Blog",
     "name": "GetLikes",
-    "group": "Blog",
+    "group": "BlogInteraction",
     "version": "2.0.0",
     "description": "<p>Retrieve all likes for a specific blog post along with details about the users who liked the post and blog details.</p>",
     "parameter": {
@@ -925,14 +925,14 @@
       ]
     },
     "filename": "routes/rest/interactions.js",
-    "groupTitle": "Blog"
+    "groupTitle": "BlogInteraction"
   },
   {
     "type": "post",
     "url": "/post/replies/:id",
     "title": "5.0.0 Get Replies for a Comment",
     "name": "GetReplies",
-    "group": "Blog",
+    "group": "BlogInteraction",
     "version": "5.0.0",
     "permission": [
       {
@@ -1018,7 +1018,7 @@
       ]
     },
     "filename": "routes/rest/interactions.js",
-    "groupTitle": "Blog"
+    "groupTitle": "BlogInteraction"
   },
   {
     "type": "post",
@@ -1188,7 +1188,7 @@
     "url": "/api/blog/comment/:id",
     "title": "6.0.0. Update a Comment",
     "name": "UpdateComment",
-    "group": "Blog",
+    "group": "BlogInteraction",
     "version": "6.0.0",
     "permission": [
       {
@@ -1275,7 +1275,7 @@
       ]
     },
     "filename": "routes/rest/interactions.js",
-    "groupTitle": "Blog"
+    "groupTitle": "BlogInteraction"
   },
   {
     "type": "post",
@@ -1396,7 +1396,7 @@
   {
     "type": "get",
     "url": "/blogs/:id",
-    "title": "Delete Blog (Soft Delete)",
+    "title": "5.0 Delete Blog (Soft Delete)",
     "name": "deleteBlog",
     "group": "Blogs",
     "version": "5.0.0",

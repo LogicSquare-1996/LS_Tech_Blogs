@@ -418,7 +418,7 @@ module.exports = {
   },
 
   /**
- * @api {get} /blogs/:id Delete Blog (Soft Delete)
+ * @api {get} /blogs/:id 5.0 Delete Blog (Soft Delete)
  * @apiName deleteBlog
  * @apiGroup Blogs
  * @apiVersion 5.0.0

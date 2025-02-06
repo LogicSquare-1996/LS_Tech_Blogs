@@ -7,7 +7,7 @@ module.exports = {
   /**
  * @api {get} /post/likes/:id 2.0 likes Get Likes for a Blog
  * @apiName GetLikes
- * @apiGroup Blog
+ * @apiGroup BlogInteraction
  * @apiVersion 2.0.0
  * 
  * @apiDescription Retrieve all likes for a specific blog post along with details about the users who liked the post and blog details.
@@ -98,7 +98,7 @@ module.exports = {
   /**
  * @api {post} /post/comments/:id 4.0 Get Top Level Comments for a Blog
  * @apiName GetComments
- * @apiGroup Blog
+ * @apiGroup BlogInteraction
  * @apiVersion 4.0.0
  * @apiPermission User (Authenticated with JWT)
  *
@@ -177,7 +177,7 @@ module.exports = {
   /**
  * @api {post} /post/replies/:id  5.0.0 Get Replies for a Comment
  * @apiName GetReplies
- * @apiGroup Blog
+ * @apiGroup BlogInteraction
  * @apiVersion 5.0.0
  * @apiPermission User (Authenticated with JWT)
  *
@@ -573,7 +573,7 @@ module.exports = {
   /**
  * @api {put} /api/blog/comment/:id  6.0.0. Update a Comment
  * @apiName UpdateComment
- * @apiGroup Blog
+ * @apiGroup BlogInteraction
  * @apiVersion 6.0.0
  * @apiPermission User (Authenticated with JWT)
  *
@@ -638,7 +638,7 @@ module.exports = {
   /**
  * @api {delete} /post/deleteinteraction/:id  7.0.0 Delete Interaction
  * @apiName DeleteInteraction
- * @apiGroup Blog
+ * @apiGroup BlogInteraction
  * @apiVersion 7.0.0
  * @apiPermission User (Authenticated with JWT)
  * 
