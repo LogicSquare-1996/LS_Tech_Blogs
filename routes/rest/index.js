@@ -13,6 +13,7 @@ const forgotpassword = require("./auth/password")
 //Blogs Routes
 const blogs = require("./blogs")
 const interactions = require("./interactions")
+const history = require("./history")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
@@ -40,8 +41,8 @@ router.get("/blogs/authors", blogs.getAuthors)
 
 //Bookmarks route
 router.post("/blog/bookmark/:id", blogs.bookMarkAndUnbookMark)
-router.post("/blog/bookmarks/", blogs.getAllBookmarks)
-// router.get("/blog/test/", blogs.testing)
+router.get("/blogs/bookmarks/", blogs.getAllBookmarks)
+
 
 //Blog Interactions Routes
 router.post("/post/interaction/:id", interactions.postInteraction)
@@ -53,7 +54,12 @@ router.delete("/post/unlike/:id", interactions.postUnlike)
 router.put("/post/update/comment/:id",interactions.updateComment)
 router.delete('/post/deleteinteraction/:id',interactions.deleteInteraction)
 
-router.get("/blog/test/", interactions.testing)
+
+// router.get("/blog/", interactions.testing)
+
+
+//History Routes
+router.post("/search/history", history.searchHistory)
 
 
 module.exports = router

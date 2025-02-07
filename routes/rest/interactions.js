@@ -831,6 +831,8 @@ module.exports = {
   ,
   async testing(req, res) {
     try {
+      console.log("This is tes");
+      
       return res.status(200).json({ success: true, message: "Hello" });
     } catch (error) {
       console.error("Error:", error);

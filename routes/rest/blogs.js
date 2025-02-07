@@ -798,7 +798,7 @@ module.exports = {
   },
 
   /**
- * @api {post} /bookmarks 2.0 Get all bookmarked blogs
+ * @api {get} /bookmarks 2.0 Get all bookmarked blogs
  * @apiVersion 2.0.0
  * @apiName GetAllBookmarks
  * @apiGroup Bookmarks

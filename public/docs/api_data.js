@@ -2186,7 +2186,7 @@ define({ "api": [
     "groupTitle": "Bookmarks"
   },
   {
-    "type": "post",
+    "type": "get",
     "url": "/bookmarks",
     "title": "2.0 Get all bookmarked blogs",
     "version": "2.0.0",
