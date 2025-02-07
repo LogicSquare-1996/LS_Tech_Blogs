@@ -1,6 +1,7 @@
 const Blog = require("../../models/blog");
 const History = require("../../models/history");
 const User = require("../../models/user");
+const BlogInteraction = require("../../models/BlogInteraction")
 
 module.exports = {
 
@@ -684,8 +685,6 @@ module.exports = {
    * }
    */
 
-
-
   async getAuthors(req, res) {
     try {
       const authors = await Blog.distinct('_author').exec();
@@ -709,11 +708,160 @@ module.exports = {
       return res.status(400).json({ error: true, message: error.message })
 
     }
+  },
+
+  /**
+ * @api {post} /blog/bookmark/:id 1.0 Bookmark/Unbookmark a Blog
+ * @apiName BookMarkAndUnbookMark
+ * @apiGroup Bookmarks
+ * @apiVersion 1.0.0
+ * @apiPermission User (Authenticated with JWT)
+ *
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {String} id Blog ID to bookmark or unbookmark (sent as a URL parameter).
+
+ *
+ * @apiError {Boolean} error Status of the request.
+ * @apiError {String} message Error message.
+ *
+ * @apiSuccessExample {json} Success Response (Bookmarked):
+ * HTTP/1.1 200 OK
+ * {
+ *   "success": true,
+ *   "message": "Blog bookmarked",
+ *   "bookmarked": true
+ * }
+ *
+ * @apiSuccessExample {json} Success Response (Unbookmarked):
+ * HTTP/1.1 200 OK
+ * {
+ *   "success": true,
+ *   "message": "Bookmark removed",
+ *   "bookmarked": false
+ * }
+ *
+ * @apiErrorExample {json} User Not Found:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "User not found"
+ * }
+ *
+ * @apiErrorExample {json} Blog Not Found:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "Blog not found"
+ * }
+ *
+ * @apiErrorExample {json} Server Error:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "Internal server error"
+ * }
+ */
+  async bookMarkAndUnbookMark(req, res) {
+    try {
+      const { id } = req.params;  // Blog Id
+      const userId = req.user._id; // Assuming user is authenticated
+  
+      const user = await User.findOne({ _id: userId });
+      if (!user) return res.status(404).json({ error: true, message: "User not found" });
+  
+      const blog = await Blog.findOne({ _id: id, status:"published" });
+      if (!blog) return res.status(404).json({ error: true, message: "Blog is not available or Not Published" });
+  
+      const isBookmarked = user._bookmarks.includes(id);
+  
+      if (isBookmarked) {
+        // Unbookmark the blog
+        user._bookmarks = user._bookmarks.filter(bookmarkId => bookmarkId.toString() !== id);
+      } else {
+        // Bookmark the blog
+        user._bookmarks.push(id);
+      }
+  
+      await user.save();
+  
+      return res.status(200).json({ 
+        success: true, 
+        message: isBookmarked ? "Bookmark removed" : "Blog bookmarked", 
+        bookmarked: !isBookmarked 
+      });
+  
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+ * @api {post} /bookmarks 2.0 Get all bookmarked blogs
+ * @apiVersion 2.0.0
+ * @apiName GetAllBookmarks
+ * @apiGroup Bookmarks
+ * @apiPermission Authenticated User
+ *
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiError (404) NotFound No bookmarks found for the user.
+ * @apiError (500) ServerError Internal server error.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "message": true,
+ *   "blogList": [
+ *     {
+ *       "_id": "60df1c5e2a4a3b001c8e4d12",
+ *       "title": "Understanding Node.js",
+ *       "content": "Node.js is a JavaScript runtime...",
+ *       "_author": {
+ *         "name": "John Doe",
+ *         "email": "john@example.com"
+ *       }
+ *     }
+ *   ]
+ * }
+ *
+ * @apiErrorExample {json} Not Found:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "No bookmarks found"
+ * }
+ *
+ * @apiErrorExample {json} Server Error:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "Internal server error"
+ * }
+ */
+
+  async getAllBookmarks(req, res) {
+    try {
+      // Fetch the user and their bookmarked blogs
+      const user = await User.findOne({ _id: req.user._id });
+  
+      if (!user || !user._bookmarks.length) {
+        return res.status(404).json({ error: true, message: 'No bookmarks found' });
+      }
+  
+      // Fetch all blog details from the bookmarked IDs
+      const blogList = await Blog.find({ _id: { $in: user._bookmarks } })
+        .populate('_author', 'name email') // Populate blog author details
+        .lean(); // Convert to plain JS object for performance
+  
+      return res.status(200).json({ message: true, blogList });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
   }
-
-
-
-
-
+  
+  
 
 }

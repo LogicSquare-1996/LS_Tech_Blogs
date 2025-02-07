@@ -350,144 +350,179 @@ module.exports = {
 
   async postInteraction(req, res) {
     try {
-      const {
-        category,
-        content,
-        isReply = false,
-        parentComment,
-        attachments
-      } = req.body;
-  
-      // Ensure `_blogId` is always correctly assigned
-      const _blogId = req.body._blogId || req.params.id; 
-      const _createdBy = req.user._id;
-  
-      if (!_blogId) {
-        return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
-      }
-  
-      let imageUrl;
-      if (req.user.profileImage !== undefined) imageUrl = req.user.profileImage;
-  
-      if (isReply && !parentComment) {
-        return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
-      }
-  
-      if (!category) {
-        return res.status(400).json({ error: true, message: "Missing mandatory field `category`" });
-      }
-  
-      if (category === "comment" && !content) {
-        return res.status(400).json({ error: true, message: "Missing mandatory field `content`" });
-      }
-  
-      // Find the blog
-      const blog = await Blog.findOne({ _id: _blogId, status: "published" })
-        .populate({ path: "_author", select: "name profileImage email" })
-        .exec();
-  
-      if (!blog) {
-        return res.status(400).json({ error: true, message: "Blog not found" });
-      }
-  
-      // Handle "like" category
-      if (category === "like") {
-        const checkLike = await BlogInteraction.findOne({
-          category: "like",
-          _blogId,
-          _createdBy
-        });
-  
-        if (checkLike) {
-          return res.status(400).json({
-            error: true,
-            message: "You have already liked this blog",
-          });
+        const {
+            category,
+            content,
+            isReply = false,
+            parentComment,
+            attachments
+        } = req.body;
+
+        // Ensure `_blogId` is always correctly assigned
+        const _blogId = req.body._blogId || req.params.id;
+        const _createdBy = req.user._id;
+
+        if (!_blogId) {
+            return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
         }
-  
-        if (String(_createdBy) === String(blog._author._id)) {
-          return res.status(400).json({
-            error: true,
-            message: "You cannot like your own blog",
-          });
-        }
-  
-        blog.likes += 1;
-        await blog.save();
-      }
-  
-      let replyStored = false;
-  
-      // Handle "comment" or "reply" category
-      if (category === "comment") {
-        if (!content) {
-          return res.status(400).json({
-            error: true,
-            message: "Missing mandatory field `content` for comment",
-          });
-        }
-  
+
+        let imageUrl;
+        if (req.user.profileImage !== undefined) imageUrl = req.user.profileImage;
+
         if (isReply && !parentComment) {
-          return res.status(400).json({
-            error: true,
-            message: "Missing mandatory field `parentComment` for reply",
-          });
+            return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
         }
-  
-        if (isReply) {
-          const parentInteraction = await BlogInteraction.findOne({ _id: parentComment }).exec();
-          if (!parentInteraction) {
-            return res.status(404).json({
-              error: true,
-              message: "Parent comment not found",
+
+        if (!category) {
+            return res.status(400).json({ error: true, message: "Missing mandatory field `category`" });
+        }
+
+        if (category === "comment" && !content) {
+            return res.status(400).json({ error: true, message: "Missing mandatory field `content`" });
+        }
+
+        // Find the blog
+        const blog = await Blog.findOne({ _id: _blogId, status: "published" })
+            .populate({ path: "_author", select: "name profileImage email" })
+            .exec();
+
+        if (!blog) {
+            return res.status(400).json({ error: true, message: "Blog not found" });
+        }
+
+        // Handle "like" category
+        if (category === "like") {
+            const existingLike = await BlogInteraction.findOne({
+                category: "like",
+                _blogId,
+                _createdBy
             });
-          }
-  
-          parentInteraction.replyCount += 1;
-          await parentInteraction.save();
+
+            if (existingLike) {
+                if (!existingLike.isDeleted) {
+                    // If the like exists and is not deleted, update it to isDeleted: true
+                    existingLike.isDeleted = true;
+                    await existingLike.save();
+
+                    blog.likes = Math.max(0, blog.likes - 1); // Ensure likes don't go negative
+                    await blog.save();
+
+                    return res.status(200).json({
+                        error: false,
+                        message: "Like removed successfully"
+                    });
+                } else {
+                    // If the like exists but was previously deleted, reactivate it
+                    existingLike.isDeleted = false;
+                    await existingLike.save();
+
+                    blog.likes += 1;
+                    await blog.save();
+
+                    return res.status(200).json({
+                        error: false,
+                        message: "Liked successfully"
+                    });
+                }
+            } else {
+                // If no like exists, create a new like record
+                if (String(_createdBy) === String(blog._author._id)) {
+                    return res.status(400).json({
+                        error: true,
+                        message: "You cannot like your own blog",
+                    });
+                }
+
+                await BlogInteraction.create({
+                    category: "like",
+                    _blogId,
+                    _createdBy,
+                    isDeleted: false
+                });
+
+                blog.likes += 1;
+                await blog.save();
+
+                return res.status(201).json({
+                    error: false,
+                    message: "Liked successfully"
+                });
+            }
         }
-  
-        blog.comments += 1;
-        await blog.save();
-      }
-  
-      // Create interaction (comment/reply)
-      const interaction = await BlogInteraction.create({
-        category,
-        content,
-        _blogId,
-        _createdBy,
-        isReply,
-        _parentComment: isReply ? parentComment : null,
-        attachments,
-      });
-  
-      // If it's a reply, store reply ID in the parent comment's `replies` array
-      if (isReply) {
-        const parentInteraction = await BlogInteraction.findOneAndUpdate(
-          { _id: parentComment },
-          { $push: { _replies: interaction._id } }, // Store reply ID in `replies`
-          { new: true }
-        );
-  
-        if (parentInteraction) {
-          replyStored = true;
+
+        let replyStored = false;
+
+        // Handle "comment" or "reply" category
+        if (category === "comment") {
+            if (!content) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Missing mandatory field `content` for comment",
+                });
+            }
+
+            if (isReply && !parentComment) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Missing mandatory field `parentComment` for reply",
+                });
+            }
+
+            if (isReply) {
+                const parentInteraction = await BlogInteraction.findOne({ _id: parentComment }).exec();
+                if (!parentInteraction) {
+                    return res.status(404).json({
+                        error: true,
+                        message: "Parent comment not found",
+                    });
+                }
+
+                parentInteraction.replyCount += 1;
+                await parentInteraction.save();
+            }
+
+            blog.comments += 1;
+            await blog.save();
         }
-      }
-  
-      return res.status(201).json({
-        error: false,
-        interaction,
-        message: isReply
-          ? `Replied successfully${replyStored ? " and reply stored in parent comment" : ""}`
-          : "Commented successfully"
-      });
-  
+
+        // Create interaction (comment/reply)
+        const interaction = await BlogInteraction.create({
+            category,
+            content,
+            _blogId,
+            _createdBy,
+            isReply,
+            _parentComment: isReply ? parentComment : null,
+            attachments,
+        });
+
+        // If it's a reply, store reply ID in the parent comment's `replies` array
+        if (isReply) {
+            const parentInteraction = await BlogInteraction.findOneAndUpdate(
+                { _id: parentComment },
+                { $push: { _replies: interaction._id } }, // Store reply ID in `replies`
+                { new: true }
+            );
+
+            if (parentInteraction) {
+                replyStored = true;
+            }
+        }
+
+        return res.status(201).json({
+            error: false,
+            interaction,
+            message: isReply
+                ? `Replied successfully${replyStored ? " and reply stored in parent comment" : ""}`
+                : "Commented successfully"
+        });
+
     } catch (error) {
-      console.log("Error is: ", error);
-      return res.status(400).json({ error: true, message: error.message });
+        console.log("Error is: ", error);
+        return res.status(400).json({ error: true, message: error.message });
     }
-  },
+}
+,
 
   /**
  * @api {post} /post/comment/like/:id 3.0 Like or Unlike a Comment/Reply
@@ -567,6 +602,77 @@ module.exports = {
       return res.json({ error: false, message: like ? "Liked successfully" : "Unliked successfully" });
     } catch (error) {
       return res.status(400).json({ error: true, message: error.message });
+    }
+  },
+
+
+  /**
+ * @api {post} /post/unlike/:id 8.0 Unlike a Post
+ * @apiName UnlikePost
+ * @apiGroup BlogInteraction
+ * @apiVersion 8.0.0
+ * @apiDescription Allows users to unlike a post.
+ * 
+ * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
+ *
+ * @apiParam {String} id The ID of the post to unlike.
+ *
+ * @apiHeader {String} Authorization User's access token.
+ *
+ * @apiSuccessExample {json} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "message": "Unliked successfully"
+ * }
+ *
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "Post not found"
+ * }
+ *
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "message": "Already unliked this post"
+ * }
+ */
+  async postUnlike(req, res){
+    try {
+      const { id } = req.params;  // 'id' from the URL parameters
+      const userId = req.user._id;  // Assuming user ID is stored in req.user (authentication done)
+  
+      // Find the BlogInteraction for the 'like' category created by the current user
+      const interaction = await BlogInteraction.findOne({
+        _blogId: id,
+        category: 'like',
+        _createdBy: userId,
+        isDeleted: false,
+      });
+  
+      // If no like interaction is found, return an error
+      if (!interaction) {
+        return res.status(404).json({ message: 'You have not liked this blog.' });
+      }
+  
+      // Soft delete the like interaction (you can also hard delete it if needed)
+      interaction.isDeleted = true;
+      await interaction.save();
+  
+      // Update the like count of the blog
+      const blog = await Blog.findOne({ _id: id });
+      if (blog) {
+        blog.likes -= 1;  // Decrease the like count
+        await blog.save();
+      }
+  
+      return res.status(200).json({ message: 'Blog unliked successfully' });
+    } catch (error) {
+      console.error('Error unliking blog:', error);
+      return res.status(500).json({ message: 'Server error. Could not unlike blog.' });
     }
   },
 
@@ -723,7 +829,14 @@ module.exports = {
     }
   }  
   ,
-
+  async testing(req, res) {
+    try {
+      return res.status(200).json({ success: true, message: "Hello" });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  }
 
 
 }

@@ -38,14 +38,22 @@ router.put('/blog/publish/:id',blogs.publishDraftBlog)
 router.get("/blogs/drafts",blogs.getDraftBlogs)
 router.get("/blogs/authors", blogs.getAuthors)
 
+//Bookmarks route
+router.post("/blog/bookmark/:id", blogs.bookMarkAndUnbookMark)
+router.post("/blog/bookmarks/", blogs.getAllBookmarks)
+// router.get("/blog/test/", blogs.testing)
+
 //Blog Interactions Routes
 router.post("/post/interaction/:id", interactions.postInteraction)
 router.get("/post/likes/:id",interactions.getLikes)           // id is BlogId
 router.post("/post/comments/:id",interactions.getComments)   // id is BlogId
 router.post("/post/replies/:id", interactions.getReplies)     //id of comment
 router.put("/post/comment/like/:id", interactions.likeCommentOrReply) //Like a comment or Reply.
+router.delete("/post/unlike/:id", interactions.postUnlike)
 router.put("/post/update/comment/:id",interactions.updateComment)
 router.delete('/post/deleteinteraction/:id',interactions.deleteInteraction)
+
+router.get("/blog/test/", interactions.testing)
 
 
 module.exports = router

@@ -6,6 +6,13 @@ const mailer = require("../../lib/mail")
 
 const UserSchema = new mongoose.Schema({
 
+  _bookmarks: [
+    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Blog' 
+    }
+  ],
+
   username: {
     type: String,
     // unique: true
@@ -76,10 +83,16 @@ const UserSchema = new mongoose.Schema({
     token: { type: String, default: null },
     expiresAt: { type: Date, default: null }
   },
+  
   otp: { type: String }, // OTP for email verification
+ 
   otpCreatedAt: { type: Date },
+  
   isVerified: { type: Boolean, default: false }, // Email verification status
+ 
   googleId: { type: String, unique: true },
+ 
+  
 })
 
 

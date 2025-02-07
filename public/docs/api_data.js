@@ -1184,6 +1184,66 @@ define({ "api": [
     "groupTitle": "BlogInteraction"
   },
   {
+    "type": "post",
+    "url": "/post/unlike/:id",
+    "title": "8.0 Unlike a Post",
+    "name": "UnlikePost",
+    "group": "BlogInteraction",
+    "version": "8.0.0",
+    "description": "<p>Allows users to unlike a post.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the post to unlike.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Unliked successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Post not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Already unliked this post\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/interactions.js",
+    "groupTitle": "BlogInteraction"
+  },
+  {
     "type": "put",
     "url": "/api/blog/comment/:id",
     "title": "6.0.0. Update a Comment",
@@ -2032,6 +2092,167 @@ define({ "api": [
     },
     "filename": "routes/rest/blogs.js",
     "groupTitle": "Blogs"
+  },
+  {
+    "type": "post",
+    "url": "/blog/bookmark/:id",
+    "title": "1.0 Bookmark/Unbookmark a Blog",
+    "name": "BookMarkAndUnbookMark",
+    "group": "Bookmarks",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "User (Authenticated with JWT)"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Blog ID to bookmark or unbookmark (sent as a URL parameter).</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "User Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"User not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Blog Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Blog not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response (Bookmarked):",
+          "content": "HTTP/1.1 200 OK\n{\n  \"success\": true,\n  \"message\": \"Blog bookmarked\",\n  \"bookmarked\": true\n}",
+          "type": "json"
+        },
+        {
+          "title": "Success Response (Unbookmarked):",
+          "content": "HTTP/1.1 200 OK\n{\n  \"success\": true,\n  \"message\": \"Bookmark removed\",\n  \"bookmarked\": false\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/blogs.js",
+    "groupTitle": "Bookmarks"
+  },
+  {
+    "type": "post",
+    "url": "/bookmarks",
+    "title": "2.0 Get all bookmarked blogs",
+    "version": "2.0.0",
+    "name": "GetAllBookmarks",
+    "group": "Bookmarks",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>No bookmarks found for the user.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "ServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"No bookmarks found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"message\": true,\n  \"blogList\": [\n    {\n      \"_id\": \"60df1c5e2a4a3b001c8e4d12\",\n      \"title\": \"Understanding Node.js\",\n      \"content\": \"Node.js is a JavaScript runtime...\",\n      \"_author\": {\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\"\n      }\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/blogs.js",
+    "groupTitle": "Bookmarks"
   },
   {
     "type": "get",
