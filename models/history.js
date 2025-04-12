@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const HistorySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to the user
   date: { type: Date, default: Date.now }, // The specific day for the history entry
