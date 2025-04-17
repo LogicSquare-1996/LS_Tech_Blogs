@@ -1,5 +1,796 @@
 [
   {
+    "type": "delete",
+    "url": "/admin/blogs/:id",
+    "title": "2.0 Delete Blog",
+    "name": "DeleteBlog",
+    "group": "Admin_Blogs",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Blog's unique ID</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Soft deletes a blog by setting its isDeleted flag to true.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Blog deleted successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Blog not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/blogs.js",
+    "groupTitle": "Admin_Blogs"
+  },
+  {
+    "type": "delete",
+    "url": "/admin/comments/:id",
+    "title": "4.0 Delete Comment",
+    "name": "DeleteComment",
+    "group": "Admin_Blogs",
+    "version": "4.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Comment's unique ID</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Soft deletes a comment by setting its isDeleted flag to true.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Comment deleted successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Comment not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/blogs.js",
+    "groupTitle": "Admin_Blogs"
+  },
+  {
+    "type": "get",
+    "url": "/admin/blogs",
+    "title": "1.0 Get All Blogs",
+    "name": "GetAllBlogs",
+    "group": "Admin_Blogs",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves a paginated list of all blogs with optional filtering.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of blogs per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "search",
+            "description": "<p>Search term to filter blogs by title or content</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "status",
+            "description": "<p>Filter blogs by status (published, draft)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "author",
+            "description": "<p>Filter blogs by author ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortBy",
+            "defaultValue": "createdAt",
+            "description": "<p>Field to sort by (createdAt, title, views, likes, comments)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortOrder",
+            "defaultValue": "desc",
+            "description": "<p>Sort order (asc, desc)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"blogs\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcde\",\n      \"title\": \"Blog Title\",\n      \"content\": \"Blog content...\",\n      \"status\": \"published\",\n      \"_author\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n        \"name\": {\n          \"full\": \"John Doe\"\n        }\n      },\n      \"views\": 100,\n      \"likes\": 10,\n      \"comments\": 5,\n      \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n    }\n  ],\n  \"totalBlogs\": 50,\n  \"totalPages\": 5,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/blogs.js",
+    "groupTitle": "Admin_Blogs"
+  },
+  {
+    "type": "get",
+    "url": "/admin/comments",
+    "title": "3.0 Get All Comments",
+    "name": "GetAllComments",
+    "group": "Admin_Blogs",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves a paginated list of all comments with optional filtering.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of comments per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "search",
+            "description": "<p>Search term to filter comments by content</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "blogId",
+            "description": "<p>Filter comments by blog ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "userId",
+            "description": "<p>Filter comments by user ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortBy",
+            "defaultValue": "createdAt",
+            "description": "<p>Field to sort by (createdAt, likes)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortOrder",
+            "defaultValue": "desc",
+            "description": "<p>Sort order (asc, desc)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"comments\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n      \"content\": \"Comment content...\",\n      \"_createdBy\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n        \"name\": {\n          \"full\": \"John Doe\"\n        }\n      },\n      \"_blogId\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcde\",\n        \"title\": \"Blog Title\"\n      },\n      \"likes\": 5,\n      \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n    }\n  ],\n  \"totalComments\": 100,\n  \"totalPages\": 10,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/blogs.js",
+    "groupTitle": "Admin_Blogs"
+  },
+  {
+    "type": "get",
+    "url": "/admin/exports/:type",
+    "title": "3.0 Export Data",
+    "name": "ExportData",
+    "group": "Admin_Broadcast",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type of data to export (users, blogs, comments)</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Exports data in CSV format.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Export successful\",\n  \"data\": \"CSV data as string\",\n  \"filename\": \"users_export_2023-01-01.csv\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid export type\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/broadcast.js",
+    "groupTitle": "Admin_Broadcast"
+  },
+  {
+    "type": "get",
+    "url": "/admin/broadcasts",
+    "title": "2.0 Get All Broadcasts",
+    "name": "GetAllBroadcasts",
+    "group": "Admin_Broadcast",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves a paginated list of all broadcasts.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of broadcasts per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "active",
+            "defaultValue": "true",
+            "description": "<p>Filter by active status (not expired)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"broadcasts\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n      \"title\": \"System Maintenance\",\n      \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n      \"target\": \"all\",\n      \"sentBy\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n        \"name\": {\n          \"full\": \"Admin User\"\n        }\n      },\n      \"expiresAt\": \"2023-12-31T23:59:59.999Z\",\n      \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n      \"readCount\": 25\n    }\n  ],\n  \"totalBroadcasts\": 5,\n  \"totalPages\": 1,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/broadcast.js",
+    "groupTitle": "Admin_Broadcast"
+  },
+  {
+    "type": "post",
+    "url": "/admin/broadcast",
+    "title": "1.0 Send Announcement",
+    "name": "SendAnnouncement",
+    "group": "Admin_Broadcast",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Creates and sends a broadcast announcement to users.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "title",
+            "description": "<p>Title of the announcement</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Content of the announcement</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "target",
+            "description": "<p>Target audience for the announcement (all, top-contributors, admins, specific-users)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "targetUsers",
+            "description": "<p>Array of user IDs (required if target is 'specific-users')</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "expiresAt",
+            "description": "<p>Expiration date for the announcement</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"title\": \"System Maintenance\",\n  \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n  \"target\": \"all\",\n  \"expiresAt\": \"2023-12-31T23:59:59.999Z\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Broadcast sent successfully\",\n  \"broadcast\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n    \"title\": \"System Maintenance\",\n    \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n    \"target\": \"all\",\n    \"sentBy\": \"60f5a13d6b1f0e12345abcd9\",\n    \"expiresAt\": \"2023-12-31T23:59:59.999Z\",\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Missing required fields\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/broadcast.js",
+    "groupTitle": "Admin_Broadcast"
+  },
+  {
+    "type": "get",
+    "url": "/admin/dashboard/stats",
+    "title": "1.0 Get Dashboard Statistics",
+    "name": "GetDashboardStats",
+    "group": "Admin_Dashboard",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves statistics for the admin dashboard.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"stats\": {\n    \"totalUsers\": 150,\n    \"activeUsers\": 120,\n    \"newUsersToday\": 5,\n    \"totalBlogs\": 75,\n    \"publishedBlogs\": 60,\n    \"draftBlogs\": 15,\n    \"totalComments\": 300,\n    \"totalLikes\": 450,\n    \"pendingReports\": 3,\n    \"topAuthors\": [\n      {\n        \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n        \"name\": {\n          \"full\": \"John Doe\"\n        },\n        \"blogCount\": 10\n      }\n    ],\n    \"popularBlogs\": [\n      {\n        \"_id\": \"60f5a13d6b1f0e12345abcde\",\n        \"title\": \"Popular Blog Title\",\n        \"views\": 1200,\n        \"likes\": 45,\n        \"comments\": 20\n      }\n    ]\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/dashboard.js",
+    "groupTitle": "Admin_Dashboard"
+  },
+  {
+    "type": "get",
+    "url": "/admin/users",
+    "title": "2.0 Get All Users",
+    "name": "GetAllUsers",
+    "group": "Admin_Users",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves a paginated list of all users with optional filtering.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of users per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "search",
+            "description": "<p>Search term to filter users by name or email</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "role",
+            "description": "<p>Filter users by role (employee, admin)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isActive",
+            "description": "<p>Filter users by active status</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortBy",
+            "defaultValue": "createdAt",
+            "description": "<p>Field to sort by (createdAt, name.first, email)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortOrder",
+            "defaultValue": "desc",
+            "description": "<p>Sort order (asc, desc)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n      \"email\": \"user@example.com\",\n      \"name\": {\n        \"first\": \"John\",\n        \"last\": \"Doe\",\n        \"full\": \"John Doe\"\n      },\n      \"username\": \"johndoe\",\n      \"role\": \"employee\",\n      \"isActive\": true,\n      \"isVerified\": true,\n      \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n    }\n  ],\n  \"totalUsers\": 150,\n  \"totalPages\": 15,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/users.js",
+    "groupTitle": "Admin_Users"
+  },
+  {
+    "type": "put",
+    "url": "/admin/user/:id/role",
+    "title": "3.0 Update User Role",
+    "name": "UpdateUserRole",
+    "group": "Admin_Users",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>User's unique ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "role",
+            "description": "<p>New role for the user (employee, admin)</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"role\": \"admin\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "description": "<p>Updates a user's role.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"User role updated successfully\",\n  \"user\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n    \"email\": \"user@example.com\",\n    \"name\": {\n      \"full\": \"John Doe\"\n    },\n    \"role\": \"admin\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid role\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/users.js",
+    "groupTitle": "Admin_Users"
+  },
+  {
     "type": "get",
     "url": "/user/:id",
     "title": "get user details",
@@ -63,10 +854,10 @@
   {
     "type": "get",
     "url": "/awstempcreds",
-    "title": "6.0 login user get temporary aws key",
+    "title": "5.0 login user get temporary aws key",
     "name": "GetAwsKey",
     "group": "Auth",
-    "version": "6.0.0",
+    "version": "1.0.0",
     "header": {
       "fields": {
         "Header": [
@@ -84,7 +875,11 @@
       "examples": [
         {
           "title": "Success-Response:",
+<<<<<<< HEAD
           "content": "{\n  \"error\": false,\n  \"AccessKeyId\": \"\",\n  \"SecretAccessKey\": \"\",\n  \"SessionToken\": \"\",\n  \"Expiration\": \"2020-01-30T06:18:43.000Z\"\n}",
+=======
+          "content": "{\n  \"error\": false,\n  \"AccessKeyId\": \"ASIASNKPOZCACSWCVJPE\",\n  \"SecretAccessKey\": \"f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/\",\n  \"SessionToken\": \"FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==\",\n  \"Expiration\": \"2020-01-30T06:18:43.000Z\"\n}",
+>>>>>>> c0c4c19 (Fix in getAWSKey)
           "type": "type"
         }
       ]
@@ -2262,6 +3057,345 @@
     },
     "filename": "routes/rest/blogs.js",
     "groupTitle": "Bookmarks"
+  },
+  {
+    "type": "get",
+    "url": "/user/me",
+    "title": "1.0 Get Current User Profile",
+    "name": "GetCurrentUserProfile",
+    "group": "User_Profile",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves the profile information of the currently authenticated user.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n    \"email\": \"user@example.com\",\n    \"name\": {\n      \"first\": \"John\",\n      \"last\": \"Doe\",\n      \"full\": \"John Doe\"\n    },\n    \"username\": \"johndoe\",\n    \"profileImage\": \"https://example.com/profile.jpg\",\n    \"phone\": \"1234567890\",\n    \"role\": \"employee\",\n    \"isActive\": true,\n    \"isVerified\": true,\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2023-01-02T00:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/profile.js",
+    "groupTitle": "User_Profile"
+  },
+  {
+    "type": "get",
+    "url": "/user/profile/:id",
+    "title": "4.0 Get Public User Profile",
+    "name": "GetPublicUserProfile",
+    "group": "User_Profile",
+    "version": "4.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>User's unique ID</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves the public profile information of a user by their ID.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n    \"name\": {\n      \"first\": \"John\",\n      \"last\": \"Doe\",\n      \"full\": \"John Doe\"\n    },\n    \"username\": \"johndoe\",\n    \"profileImage\": \"https://example.com/profile.jpg\",\n    \"githubProfile\": \"https://github.com/johndoe\",\n    \"social\": [\n      {\n        \"name\": \"twitter\",\n        \"username\": \"johndoe\",\n        \"accountUrl\": \"https://twitter.com/johndoe\"\n      }\n    ],\n    \"blogs\": [\n      {\n        \"_id\": \"60f5a13d6b1f0e12345abcde\",\n        \"title\": \"My First Blog\",\n        \"thumbnail\": \"https://example.com/thumbnail.jpg\",\n        \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n      }\n    ]\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"User not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/profile.js",
+    "groupTitle": "User_Profile"
+  },
+  {
+    "type": "get",
+    "url": "/user/history",
+    "title": "5.0 Get User Reading History",
+    "name": "GetUserHistory",
+    "group": "User_Profile",
+    "version": "5.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Retrieves the reading history of the currently authenticated user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of items per page</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"history\": [\n    {\n      \"blogId\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcde\",\n        \"title\": \"My First Blog\",\n        \"thumbnail\": \"https://example.com/thumbnail.jpg\",\n        \"_author\": {\n          \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n          \"name\": {\n            \"full\": \"John Doe\"\n          }\n        }\n      },\n      \"readAt\": \"2023-01-01T00:00:00.000Z\",\n      \"readingTime\": 120\n    }\n  ],\n  \"totalItems\": 25,\n  \"totalPages\": 3,\n  \"currentPage\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No reading history found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/profile.js",
+    "groupTitle": "User_Profile"
+  },
+  {
+    "type": "put",
+    "url": "/user/me",
+    "title": "2.0 Update Current User Profile",
+    "name": "UpdateCurrentUserProfile",
+    "group": "User_Profile",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Updates the profile information of the currently authenticated user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "name",
+            "description": "<p>User's name object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "name.first",
+            "description": "<p>User's first name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "name.last",
+            "description": "<p>User's last name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "username",
+            "description": "<p>User's username</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "phone",
+            "description": "<p>User's phone number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "gender",
+            "description": "<p>User's gender (Male, Female, Other)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "githubProfile",
+            "description": "<p>User's GitHub profile URL</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "social",
+            "description": "<p>User's social media profiles</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"name\": {\n    \"first\": \"John\",\n    \"last\": \"Smith\"\n  },\n  \"phone\": \"9876543210\",\n  \"gender\": \"Male\",\n  \"githubProfile\": \"https://github.com/johnsmith\",\n  \"social\": [\n    {\n      \"name\": \"twitter\",\n      \"username\": \"johnsmith\",\n      \"accountUrl\": \"https://twitter.com/johnsmith\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Profile updated successfully\",\n  \"user\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n    \"email\": \"user@example.com\",\n    \"name\": {\n      \"first\": \"John\",\n      \"last\": \"Smith\",\n      \"full\": \"John Smith\"\n    },\n    \"username\": \"johnsmith\",\n    \"phone\": \"9876543210\",\n    \"gender\": \"Male\",\n    \"githubProfile\": \"https://github.com/johnsmith\",\n    \"social\": [\n      {\n        \"name\": \"twitter\",\n        \"username\": \"johnsmith\",\n        \"accountUrl\": \"https://twitter.com/johnsmith\"\n      }\n    ]\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/profile.js",
+    "groupTitle": "User_Profile"
+  },
+  {
+    "type": "put",
+    "url": "/user/profile-picture",
+    "title": "3.0 Update Profile Picture",
+    "name": "UpdateProfilePicture",
+    "group": "User_Profile",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Returns a pre-signed S3 URL for uploading a profile picture. The client should use this URL to upload the image directly to S3.</p>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"uploadUrl\": \"https://s3-bucket.amazonaws.com/...\",\n  \"key\": \"profile-pictures/user-123456.jpg\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/profile.js",
+    "groupTitle": "User_Profile"
   },
   {
     "type": "get",

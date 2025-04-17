@@ -92,10 +92,10 @@ module.exports = {
 
   /**
    *
-   * @api {get} /awstempcreds 6.0 login user get temporary aws key
+   * @api {get} /awstempcreds 5.0 login user get temporary aws key
    * @apiName GetAwsKey
    * @apiGroup Auth
-   * @apiVersion  6.0.0
+   * @apiVersion  1.0.0
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
    * @apiSuccessExample {type} Success-Response:
