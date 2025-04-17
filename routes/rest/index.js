@@ -10,7 +10,6 @@ const users = require("./users")
 const login = require("./auth")
 const signup = require("./auth/signup")
 const forgotpassword = require("./auth/password")
-const profile = require("./profile")
 //Blogs Routes
 const blogs = require("./blogs")
 const interactions = require("./interactions")
@@ -28,14 +27,6 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
 router.get("/awstempcreds", login.getAwsKey)  //For AWS S3 upload
 
-// User Profile Routes
-router.get("/user/me", profile.getCurrentUser)
-router.put("/user/me", profile.updateCurrentUser)
-router.put("/user/profile-picture", profile.getProfilePictureUploadUrl)
-router.get("/user/profile/:id", profile.getPublicUserProfile)
-router.get("/user/history", profile.getUserHistory)
-
-// Get user by ID
 router.get("/user/:id", users.get)
 
 //Blogs Routes
