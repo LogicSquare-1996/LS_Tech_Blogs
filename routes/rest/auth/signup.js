@@ -80,7 +80,7 @@ module.exports = {
 
   async post(req, res) {
     try {
-      const { username, email, phone, name, password, rePassword } = req.body;
+      const { username, email, phone, name, password, rePassword, role } = req.body;
 
       // Validate input fields
       const existingUser = await User.findOne({ $or: [{ email: email }, { username: username }] });
@@ -151,6 +151,7 @@ module.exports = {
         password,
         name: name,
         username,
+        role,
         otp, // Save OTP in the database for verification
         isVerified: false, // Add a field in your schema for this
         otpCreatedAt: Date.now(),

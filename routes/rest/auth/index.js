@@ -72,7 +72,8 @@ module.exports = {
         email: user.email,
         username: user.username,
         phone: user.phone,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        role: user.role
       }
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30 // 1 month
@@ -92,11 +93,20 @@ module.exports = {
 
   /**
    *
-   * @api {get} /awstempcreds 6.0 login user get temporary aws key
+   * @api {get} /awstempcreds 5.0 login user get temporary aws key
    * @apiName GetAwsKey
    * @apiGroup Auth
-   * @apiVersion  6.0.0
+   * @apiVersion  1.0.0
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiSuccessExample {type} Success-Response:
+      {
+        "error": false,
+        "AccessKeyId": "ASIASNKPOZCACSWCVJPE",
+        "SecretAccessKey": "f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/",
+        "SessionToken": "FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==",
+        "Expiration": "2020-01-30T06:18:43.000Z"
+      }
    *
    *
    */
