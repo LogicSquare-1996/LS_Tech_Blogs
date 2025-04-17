@@ -80,6 +80,15 @@ define({ "api": [
         ]
       }
     },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\": false,\n  \"AccessKeyId\": \"\",\n  \"SecretAccessKey\": \"\",\n  \"SessionToken\": \"\",\n  \"Expiration\": \"2020-01-30T06:18:43.000Z\"\n}",
+          "type": "type"
+        }
+      ]
+    },
     "filename": "routes/rest/auth/index.js",
     "groupTitle": "Auth"
   },
