@@ -102,9 +102,9 @@ module.exports = {
    * @apiSuccessExample {type} Success-Response:
       {
         "error": false,
-        "AccessKeyId": "ASIASNKPOZCACSWCVJPE",
-        "SecretAccessKey": "f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/",
-        "SessionToken": "FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==",
+        "AccessKeyId": "",
+        "SecretAccessKey": "",
+        "SessionToken": "",
         "Expiration": "2020-01-30T06:18:43.000Z"
       }
    *
