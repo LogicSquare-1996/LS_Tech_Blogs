@@ -359,6 +359,8 @@ module.exports = {
             attachments
         } = req.body;
 
+        console.log("User:", req.user.fullName);
+        
         // Ensure `_blogId` is always correctly assigned
         const _blogId = req.body._blogId || req.params.id;
         const _createdBy = req.user._id;
@@ -367,8 +369,7 @@ module.exports = {
             return res.status(400).json({ error: true, message: "Missing mandatory field `_blogId`" });
         }
 
-        let imageUrl;
-        if (req.user.profileImage !== undefined) imageUrl = req.user.profileImage;
+        // User profile image is available at req.user.profileImage if needed
 
         if (isReply && !parentComment) {
             return res.status(400).json({ error: true, message: "Missing mandatory field `parentComment`" });
@@ -399,6 +400,8 @@ module.exports = {
                 _createdBy
             });
 
+
+
             if (existingLike) {
                 if (!existingLike.isDeleted) {
                     // If the like exists and is not deleted, update it to isDeleted: true
@@ -427,14 +430,26 @@ module.exports = {
                 }
             } else {
                 // If no like exists, create a new like record
-                if (String(_createdBy) === String(blog._author._id)) {
-                    return res.status(400).json({
-                        error: true,
-                        message: "You cannot like your own blog",
-                    });
+
+                if (blog._author && _createdBy) {
+                    // Get the actual ID value, whether it's an object or string
+                    const blogAuthorId = typeof blog._author === 'object' ?
+                        blog._author._id : blog._author;
+
+                    // Convert both IDs to strings for comparison
+                    const authorIdStr = String(blogAuthorId);
+                    const createdByStr = String(_createdBy);
+
+                    if (authorIdStr === createdByStr) {
+                        return res.status(400).json({
+                            error: true,
+                            message: "You cannot like your own blog",
+                        });
+                    }
                 }
 
-                const interaction = await BlogInteraction.create({
+                // Create the like interaction
+                await BlogInteraction.create({
                     category: "like",
                     _blogId,
                     _createdBy,
@@ -444,21 +459,36 @@ module.exports = {
                 blog.likes += 1;
                 await blog.save();
 
-                // Create notification for blog author about the like
-                if (blog._author && _createdBy && !_createdBy.equals(blog._author._id)) {
-                    try {
-                        await Notification.create({
-                            title: 'New Like on Your Blog',
-                            message: `Someone liked your blog "${blog.title}"`,
-                            type: 'like',
-                            target: 'specific_user',
-                            targetUser: blog._author._id,
-                            sourceUser: _createdBy,
-                            blogId: _blogId
-                        });
-                    } catch (notificationError) {
-                        console.error('Error creating like notification:', notificationError);
-                        // Continue with the response even if notification creation fails
+                if (blog._author && _createdBy) {
+                    // Get the actual ID value, whether it's an object or string
+                    const blogAuthorId = typeof blog._author === 'object' ?
+                        blog._author._id : blog._author;
+
+                    // Convert both IDs to strings for comparison
+                    const authorIdStr = String(blogAuthorId);
+                    const createdByStr = String(_createdBy);
+
+                    if (authorIdStr !== createdByStr) {
+                        try {
+                            // Get the user's name
+                            const userName = req.user.fullName || "Someone";
+                            // Create notification for blog author
+                            const notificationData = {
+                                title: 'New Like on Your Blog',
+                                message: `${userName} liked your blog "${blog.title}"`,
+                                type: 'like',
+                                target: 'specific_user',
+                                targetUser: blogAuthorId,
+                                sourceUser: _createdBy,
+                                blogId: _blogId
+                            };
+
+                            const notification = await Notification.create(notificationData);
+                        } catch (error) {
+                            console.error("Error creating blog like notification:", error);
+                            console.error("Error stack:", error.stack);
+                            // Continue with the response even if notification creation fails
+                        }
                     }
                 }
 
@@ -531,35 +561,85 @@ module.exports = {
         // Create notifications based on interaction type
         try {
             if (isReply) {
-                // This is a reply to a comment
-                const parentCommentObj = await BlogInteraction.findById(parentComment);
-                if (parentCommentObj && parentCommentObj._createdBy && _createdBy && !_createdBy.equals(parentCommentObj._createdBy)) {
-                    // Create notification for parent comment author
-                    await Notification.create({
-                        title: 'New Reply to Your Comment',
-                        message: `Someone replied to your comment on "${blog.title}"`,
-                        type: 'reply',
-                        target: 'specific_user',
-                        targetUser: parentCommentObj._createdBy,
-                        sourceUser: _createdBy,
-                        blogId: _blogId,
-                        commentId: interaction._id
-                    });
+                // Populate the parent comment to get the author details
+                const parentCommentObj = await BlogInteraction.findById(parentComment)
+                    .populate('_createdBy', 'name email')
+                    .exec();
+
+
+
+                if (parentCommentObj && parentCommentObj._createdBy && _createdBy) {
+                    // Get the actual ID value, whether it's an object or string
+                    const commentAuthorId = typeof parentCommentObj._createdBy === 'object' ?
+                        parentCommentObj._createdBy._id : parentCommentObj._createdBy;
+
+                    // Convert both IDs to strings for comparison
+                    const commentAuthorIdStr = String(commentAuthorId);
+                    const createdByStr = String(_createdBy);
+
+
+
+                    if (commentAuthorIdStr !== createdByStr) {
+                        try {
+                            // Get the user's name
+                            const userName = req.user.fullName || "Someone";
+
+                            // Create notification for parent comment author
+                            const notificationData = {
+                                title: 'New Reply to Your Comment',
+                                message: `${userName} replied to your comment on "${blog.title}"`,
+                                type: 'reply',
+                                target: 'specific_user',
+                                targetUser: commentAuthorId,
+                                sourceUser: _createdBy,
+                                blogId: _blogId,
+                                commentId: interaction._id
+                            };
+
+                            await Notification.create(notificationData);
+                        } catch (error) {
+                            console.error("Error creating reply notification:", error);
+                            console.error("Error stack:", error.stack);
+                        }
+                    }
                 }
             } else {
                 // This is a comment on a blog
-                if (blog._author && _createdBy && !_createdBy.equals(blog._author._id)) {
-                    // Create notification for blog author
-                    await Notification.create({
-                        title: 'New Comment on Your Blog',
-                        message: `Someone commented on your blog "${blog.title}"`,
-                        type: 'comment',
-                        target: 'specific_user',
-                        targetUser: blog._author._id,
-                        sourceUser: _createdBy,
-                        blogId: _blogId,
-                        commentId: interaction._id
-                    });
+
+                if (blog._author && _createdBy) {
+                    // Get the actual ID value, whether it's an object or string
+                    const blogAuthorId = typeof blog._author === 'object' ?
+                        blog._author._id : blog._author;
+
+                    // Convert both IDs to strings for comparison
+                    const authorIdStr = String(blogAuthorId);
+                    const createdByStr = String(_createdBy);
+
+
+
+                    if (authorIdStr !== createdByStr) {
+                        try {
+                            // Get the user's name
+                            const userName = req.user.fullName || "Someone";
+
+                            // Create notification for blog author
+                            const notificationData = {
+                                title: 'New Comment on Your Blog',
+                                message: `${userName} commented on your blog "${blog.title}"`,
+                                type: 'comment',
+                                target: 'specific_user',
+                                targetUser: blogAuthorId,
+                                sourceUser: _createdBy,
+                                blogId: _blogId,
+                                commentId: interaction._id
+                            };
+
+                            await Notification.create(notificationData);
+                        } catch (error) {
+                            console.error("Error creating comment notification:", error);
+                            console.error("Error stack:", error.stack);
+                        }
+                    }
                 }
             }
         } catch (notificationError) {
@@ -650,17 +730,42 @@ module.exports = {
           // Get the blog to include its title in the notification
           const blog = await Blog.findById(interaction._blogId);
 
-          if (interaction._createdBy && userId && !userId.equals(interaction._createdBy)) {
-            await Notification.create({
-              title: 'New Like on Your Comment',
-              message: `Someone liked your comment on "${blog ? blog.title : 'a blog'}"`,
-              type: 'like',
-              target: 'specific_user',
-              targetUser: interaction._createdBy,
-              sourceUser: userId,
-              blogId: interaction._blogId,
-              commentId: interaction._id
-            });
+
+
+          if (interaction._createdBy && userId) {
+            // Get the actual ID value, whether it's an object or string
+            const commentAuthorId = typeof interaction._createdBy === 'object' ?
+                interaction._createdBy._id : interaction._createdBy;
+
+            // Convert both IDs to strings for comparison
+            const commentAuthorIdStr = String(commentAuthorId);
+            const userIdStr = String(userId);
+
+
+
+            if (commentAuthorIdStr !== userIdStr) {
+              try {
+                // Get the user's name
+                const userName = req.user.fullName || "Someone";
+
+                // Create notification for comment author
+                const notificationData = {
+                  title: 'New Like on Your Comment',
+                  message: `${userName} liked your comment on "${blog ? blog.title : 'a blog'}"`,
+                  type: 'like',
+                  target: 'specific_user',
+                  targetUser: commentAuthorId,
+                  sourceUser: userId,
+                  blogId: interaction._blogId,
+                  commentId: interaction._id
+                };
+
+                await Notification.create(notificationData);
+              } catch (error) {
+                console.error("Error creating comment like notification:", error);
+                console.error("Error stack:", error.stack);
+              }
+            }
           }
         } catch (notificationError) {
           console.error('Error creating comment like notification:', notificationError);

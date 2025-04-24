@@ -333,238 +333,6 @@
   },
   {
     "type": "get",
-    "url": "/admin/exports/:type",
-    "title": "3.0 Export Data",
-    "name": "ExportData",
-    "group": "Admin_Broadcast",
-    "version": "3.0.0",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "type",
-            "description": "<p>Type of data to export (users, blogs, comments)</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Exports data in CSV format.</p>",
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Export successful\",\n  \"data\": \"CSV data as string\",\n  \"filename\": \"users_export_2023-01-01.csv\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid export type\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "filename": "routes/admin/broadcast.js",
-    "groupTitle": "Admin_Broadcast"
-  },
-  {
-    "type": "get",
-    "url": "/admin/broadcasts",
-    "title": "2.0 Get All Broadcasts",
-    "name": "GetAllBroadcasts",
-    "group": "Admin_Broadcast",
-    "version": "2.0.0",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Retrieves a paginated list of all broadcasts.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "page",
-            "defaultValue": "1",
-            "description": "<p>Page number for pagination</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "limit",
-            "defaultValue": "10",
-            "description": "<p>Number of broadcasts per page</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "active",
-            "defaultValue": "true",
-            "description": "<p>Filter by active status (not expired)</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"broadcasts\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n      \"title\": \"System Maintenance\",\n      \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n      \"target\": \"all\",\n      \"sentBy\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcd9\",\n        \"name\": {\n          \"full\": \"Admin User\"\n        }\n      },\n      \"expiresAt\": \"2023-12-31T23:59:59.999Z\",\n      \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n      \"readCount\": 25\n    }\n  ],\n  \"totalBroadcasts\": 5,\n  \"totalPages\": 1,\n  \"currentPage\": 1\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "filename": "routes/admin/broadcast.js",
-    "groupTitle": "Admin_Broadcast"
-  },
-  {
-    "type": "post",
-    "url": "/admin/broadcast",
-    "title": "1.0 Send Announcement",
-    "name": "SendAnnouncement",
-    "group": "Admin_Broadcast",
-    "version": "1.0.0",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Creates and sends a broadcast announcement to users.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "title",
-            "description": "<p>Title of the announcement</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Content of the announcement</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "target",
-            "description": "<p>Target audience for the announcement (all, top-contributors, admins, specific-users)</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Array",
-            "optional": true,
-            "field": "targetUsers",
-            "description": "<p>Array of user IDs (required if target is 'specific-users')</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": true,
-            "field": "expiresAt",
-            "description": "<p>Expiration date for the announcement</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"title\": \"System Maintenance\",\n  \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n  \"target\": \"all\",\n  \"expiresAt\": \"2023-12-31T23:59:59.999Z\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Broadcast sent successfully\",\n  \"broadcast\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n    \"title\": \"System Maintenance\",\n    \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM.\",\n    \"target\": \"all\",\n    \"sentBy\": \"60f5a13d6b1f0e12345abcd9\",\n    \"expiresAt\": \"2023-12-31T23:59:59.999Z\",\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\"\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Missing required fields\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "filename": "routes/admin/broadcast.js",
-    "groupTitle": "Admin_Broadcast"
-  },
-  {
-    "type": "get",
     "url": "/admin/dashboard/stats",
     "title": "1.0 Get Dashboard Statistics",
     "name": "GetDashboardStats",
@@ -609,6 +377,452 @@
     },
     "filename": "routes/admin/dashboard.js",
     "groupTitle": "Admin_Dashboard"
+  },
+  {
+    "type": "delete",
+    "url": "/admin/notifications/:id",
+    "title": "3.0 Delete Notification",
+    "name": "DeleteNotification",
+    "group": "Admin_Notifications",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint allows administrators to delete a specific notification from the system.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Notification's unique ID (in URL path)</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage:",
+        "content": "curl -X DELETE -H \"Authorization: Bearer xxxx.yyyy.zzzz\" https://api.example.com/admin/notifications/60f5a13d6b1f0e12345abcde",
+        "type": "curl"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Notification deleted successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "403": [
+          {
+            "group": "403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response - Unauthorized:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Notification not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/notifications.js",
+    "groupTitle": "Admin_Notifications"
+  },
+  {
+    "type": "post",
+    "url": "/admin/notifications",
+    "title": "2.0 Get All Notifications",
+    "name": "GetAllNotifications",
+    "group": "Admin_Notifications",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint allows administrators to retrieve all notifications in the system with pagination and filtering options.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of notifications per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "type",
+            "description": "<p>Filter notifications by type ('new_blog', 'like', 'comment', 'reply', 'system')</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"type\": \"system\"\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "notifications",
+            "description": "<p>Array of notification objects</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "pagination",
+            "description": "<p>Pagination information</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.total",
+            "description": "<p>Total number of notifications</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.page",
+            "description": "<p>Current page number</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.limit",
+            "description": "<p>Number of notifications per page</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.pages",
+            "description": "<p>Total number of pages</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"notifications\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcde\",\n      \"title\": \"System Maintenance\",\n      \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM\",\n      \"type\": \"system\",\n      \"target\": \"all\",\n      \"sourceUser\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n        \"name\": \"Admin User\"\n      },\n      \"isRead\": false,\n      \"createdAt\": \"2023-07-19T10:30:15.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:15.123Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 25,\n    \"page\": 1,\n    \"limit\": 10,\n    \"pages\": 3\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "403": [
+          {
+            "group": "403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response - Unauthorized:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/notifications.js",
+    "groupTitle": "Admin_Notifications"
+  },
+  {
+    "type": "post",
+    "url": "/admin/notification",
+    "title": "1.0 Send System Notification",
+    "name": "SendSystemNotification",
+    "group": "Admin_Notifications",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint allows administrators to send system notifications to all users or a specific user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "title",
+            "description": "<p>Title of the notification</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Content of the notification</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "target",
+            "description": "<p>Target audience for the notification (must be 'all' or 'specific_user')</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "targetUser",
+            "description": "<p>User ID of the specific user (required when target is 'specific_user')</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "expiresAt",
+            "description": "<p>Optional expiration date for the notification</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request Example - All Users:",
+        "content": "{\n  \"title\": \"System Maintenance\",\n  \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM\",\n  \"target\": \"all\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example - Specific User:",
+        "content": "{\n  \"title\": \"Account Update\",\n  \"message\": \"Your account has been upgraded to premium\",\n  \"target\": \"specific_user\",\n  \"targetUser\": \"60f5a13d6b1f0e12345abcde\"\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "notification",
+            "description": "<p>The created notification object</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Notification sent successfully\",\n  \"notification\": {\n    \"_id\": \"60f5a13d6b1f0e12345abcde\",\n    \"title\": \"System Maintenance\",\n    \"message\": \"The system will be down for maintenance on Saturday from 2-4 AM\",\n    \"type\": \"system\",\n    \"target\": \"all\",\n    \"sourceUser\": \"60f5a13d6b1f0e12345abcdf\",\n    \"createdAt\": \"2023-07-19T10:30:15.123Z\",\n    \"updatedAt\": \"2023-07-19T10:30:15.123Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response - Missing Fields:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Missing required fields: title, message, and target are mandatory\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Invalid Target:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid target. Must be one of: all, specific_user\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Missing Target User:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"targetUser is required when target is 'specific_user'\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Unauthorized:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/notifications.js",
+    "groupTitle": "Admin_Notifications"
   },
   {
     "type": "get",
@@ -1256,13 +1470,8 @@
           "type": "json"
         },
         {
-          "title": "Error-Response (User does not exist):",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"User does not exist\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Error-Response (Email is already verified):",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"Email is already verified\"\n}",
+          "title": "Error-Response (No pending verification found):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"No pending verification found for this email. Please register again.\"\n}",
           "type": "json"
         },
         {
@@ -3053,6 +3262,477 @@
     },
     "filename": "routes/rest/blogs.js",
     "groupTitle": "Bookmarks"
+  },
+  {
+    "type": "post",
+    "url": "/notifications/unread-count",
+    "title": "4.0 Get Unread Notification Count",
+    "name": "GetUnreadNotificationCount",
+    "group": "Notifications",
+    "version": "4.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint retrieves the count of unread notifications for the currently authenticated user.</p>",
+    "examples": [
+      {
+        "title": "Example Usage:",
+        "content": "curl -X POST -H \"Authorization: Bearer xxxx.yyyy.zzzz\" https://api.example.com/notifications/unread-count",
+        "type": "curl"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "unreadCount",
+            "description": "<p>Number of unread notifications</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"unreadCount\": 5\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/notifications.js",
+    "groupTitle": "Notifications"
+  },
+  {
+    "type": "post",
+    "url": "/notifications",
+    "title": "1.0 Get User Notifications",
+    "name": "GetUserNotifications",
+    "group": "Notifications",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint retrieves notifications for the currently authenticated user with pagination and filtering options.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "10",
+            "description": "<p>Number of notifications per page</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "unreadOnly",
+            "defaultValue": "false",
+            "description": "<p>Filter to show only unread notifications</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"unreadOnly\": false\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "notifications",
+            "description": "<p>Array of notification objects</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "pagination",
+            "description": "<p>Pagination information</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.total",
+            "description": "<p>Total number of notifications</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.unreadCount",
+            "description": "<p>Number of unread notifications</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.page",
+            "description": "<p>Current page number</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.limit",
+            "description": "<p>Number of notifications per page</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pagination.pages",
+            "description": "<p>Total number of pages</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"notifications\": [\n    {\n      \"_id\": \"60f5a13d6b1f0e12345abcde\",\n      \"title\": \"New Blog Published\",\n      \"message\": \"A new blog 'JavaScript Best Practices' has been published\",\n      \"type\": \"new_blog\",\n      \"target\": \"all\",\n      \"sourceUser\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcdf\",\n        \"name\": \"John Doe\"\n      },\n      \"blogId\": {\n        \"_id\": \"60f5a13d6b1f0e12345abcdg\",\n        \"title\": \"JavaScript Best Practices\",\n        \"slug\": \"javascript-best-practices\"\n      },\n      \"isRead\": false,\n      \"createdAt\": \"2023-07-19T10:30:15.123Z\",\n      \"updatedAt\": \"2023-07-19T10:30:15.123Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 25,\n    \"unreadCount\": 10,\n    \"page\": 1,\n    \"limit\": 10,\n    \"pages\": 3\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/notifications.js",
+    "groupTitle": "Notifications"
+  },
+  {
+    "type": "put",
+    "url": "/notifications/read-all",
+    "title": "3.0 Mark All Notifications as Read",
+    "name": "MarkAllNotificationsAsRead",
+    "group": "Notifications",
+    "version": "3.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint marks all notifications as read for the currently authenticated user.</p>",
+    "examples": [
+      {
+        "title": "Example Usage:",
+        "content": "curl -X PUT -H \"Authorization: Bearer xxxx.yyyy.zzzz\" https://api.example.com/notifications/read-all",
+        "type": "curl"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message with the number of notifications marked as read</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"5 notifications marked as read\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/notifications.js",
+    "groupTitle": "Notifications"
+  },
+  {
+    "type": "put",
+    "url": "/notifications/:id/read",
+    "title": "2.0 Mark Notification as Read",
+    "name": "MarkNotificationAsRead",
+    "group": "Notifications",
+    "version": "2.0.0",
+    "permission": [
+      {
+        "name": "Authenticated User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint marks a specific notification as read for the currently authenticated user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Notification's unique ID (in URL path)</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage:",
+        "content": "curl -X PUT -H \"Authorization: Bearer xxxx.yyyy.zzzz\" https://api.example.com/notifications/60f5a13d6b1f0e12345abcde/read",
+        "type": "curl"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always false for success)</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Notification marked as read\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "403": [
+          {
+            "group": "403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error indicator (always true for errors)</p>"
+          },
+          {
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response - Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Notification not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Unauthorized:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You don't have permission to access this notification\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response - Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/notifications.js",
+    "groupTitle": "Notifications"
   },
   {
     "type": "get",

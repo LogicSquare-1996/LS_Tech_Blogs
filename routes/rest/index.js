@@ -71,7 +71,7 @@ router.post("/search/history", history.searchHistory)
 
 //Notification Routes
 router.post("/notifications", notifications.getUserNotifications)
-router.put("/notifications/:id/read", notifications.markNotificationAsRead)
+router.put("/notifications/read/:id", notifications.markNotificationAsRead)
 router.put("/notifications/read-all", notifications.markAllNotificationsAsRead)
 router.post("/notifications/unread-count", notifications.getUnreadNotificationCount)
 

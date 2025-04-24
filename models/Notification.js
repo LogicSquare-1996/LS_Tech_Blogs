@@ -44,6 +44,10 @@ const NotificationSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   }
 });
 

@@ -93,7 +93,7 @@ module.exports = {
         try {
           await Notification.create({
             title: 'New Blog Published',
-            message: `A new blog "${title}" has been published`,
+            message: `${req.user.fullName} published a new blog: "${blog.title}" `,
             type: 'new_blog',
             target: 'all',
             sourceUser: req.user._id,
@@ -546,7 +546,7 @@ module.exports = {
       try {
         await Notification.create({
           title: 'New Blog Published',
-          message: `A new blog "${blog.title}" has been published`,
+          message: `${req.user.fullName} published a new blog: "${blog.title}" `,
           type: 'new_blog',
           target: 'all',
           sourceUser: req.user._id,

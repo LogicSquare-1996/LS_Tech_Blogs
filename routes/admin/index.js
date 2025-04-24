@@ -27,6 +27,6 @@ router.delete("/comments/:id", blogs.deleteComment)
 // Notification routes
 router.post("/notification", notifications.sendNotification)
 router.post("/notifications", notifications.getAllNotifications)
-router.delete("/notifications/:id", notifications.deleteNotification)
+router.post("/notification/:id", notifications.deleteNotification)
 
 module.exports = router
