@@ -793,9 +793,9 @@
   {
     "type": "get",
     "url": "/user/:id",
-    "title": "get user details",
+    "title": "1.0 get user details",
     "name": "userDetails",
-    "group": "Admin_User",
+    "group": "Admin_Users",
     "version": "1.0.0",
     "permission": [
       {
@@ -849,7 +849,7 @@
       ]
     },
     "filename": "routes/admin/users.js",
-    "groupTitle": "Admin_User"
+    "groupTitle": "Admin_Users"
   },
   {
     "type": "get",
@@ -875,11 +875,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-<<<<<<< HEAD
           "content": "{\n  \"error\": false,\n  \"AccessKeyId\": \"\",\n  \"SecretAccessKey\": \"\",\n  \"SessionToken\": \"\",\n  \"Expiration\": \"2020-01-30T06:18:43.000Z\"\n}",
-=======
-          "content": "{\n  \"error\": false,\n  \"AccessKeyId\": \"ASIASNKPOZCACSWCVJPE\",\n  \"SecretAccessKey\": \"f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/\",\n  \"SessionToken\": \"FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==\",\n  \"Expiration\": \"2020-01-30T06:18:43.000Z\"\n}",
->>>>>>> c0c4c19 (Fix in getAWSKey)
           "type": "type"
         }
       ]

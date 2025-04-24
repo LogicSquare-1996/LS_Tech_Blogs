@@ -1,6 +1,7 @@
 const Blog = require("../../models/blog");
 const User = require("../../models/user");
 const BlogInteraction = require("../../models/BlogInteraction");
+const Notification = require("../../models/Notification");
 
 module.exports = {
 
@@ -9,11 +10,11 @@ module.exports = {
  * @apiName GetLikes
  * @apiGroup BlogInteraction
  * @apiVersion 2.0.0
- * 
+ *
  * @apiDescription Retrieve all likes for a specific blog post along with details about the users who liked the post and blog details.
- * 
+ *
  * @apiParam {String} id The ID of the blog to retrieve likes for.
- * 
+ *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
  *     {
@@ -38,24 +39,24 @@ module.exports = {
  *         }
  *       ]
  *     }
- * 
+ *
  * @apiError {Boolean} error Indicates if an error occurred.
  * @apiError {String} message Error message explaining the cause.
- * 
+ *
  * @apiErrorExample {json} Blog Not Found:
  *     HTTP/1.1 400 Bad Request
  *     {
  *       "error": true,
  *       "message": "Blog not found"
  *     }
- * 
+ *
  * @apiErrorExample {json} Interactions Not Found:
  *     HTTP/1.1 400 Bad Request
  *     {
  *       "error": true,
  *       "message": "Interactions not found"
  *     }
- * 
+ *
  * @apiErrorExample {json} Server Error:
  *     HTTP/1.1 400 Bad Request
  *     {
@@ -66,7 +67,7 @@ module.exports = {
 
   async getLikes(req, res) {
     try {
-        
+
       const blog = await Blog.findOne({_id: req.params.id, status: "published"}).exec()
       if(!blog) return res.status(400).json({error: true, message: "Blog not found"})
 
@@ -84,17 +85,17 @@ module.exports = {
           },
         })
         .exec();
-        
+
       if(!interactions) return res.status(400).json({error: true, message: "Interactions not found"})
       return res.status(200).json({error: false, interactions})
 
     } catch (error) {
       console.log("Error is: ", error);
       return res.status(400).json({ error: true, message: error.message });
-      
+
     }
   },
-  
+
   /**
  * @api {post} /post/comments/:id 4.0 Get Top Level Comments for a Blog
  * @apiName GetComments
@@ -142,7 +143,7 @@ module.exports = {
     try {
       const { page = 1, limit = 10 } = req.body;
       const skip = (page - 1) * limit;
-  
+
       const comments = await BlogInteraction.find({
         _blogId: req.params.id,
         category: "comment",
@@ -153,14 +154,14 @@ module.exports = {
       .skip(skip)
       .populate("_createdBy", "username name profileImage")
       .exec();
-  
+
       const totalComments = await BlogInteraction.countDocuments({
         _blogId: req.params.id,
         category: "comment",
         isDeleted: false,
         isReply: false
       });
-  
+
       return res.json({
         error: false,
         comments,
@@ -233,12 +234,12 @@ module.exports = {
         body: { skip = 0, limit = 10 },
         params: { id },
       } = req;
-  
+
       // Validate the comment ID
       if (!id || id === "") {
         return res.status(400).json({ error: true, message: "Mandatory param `id` is missing or invalid" });
       }
-  
+
       // Fetch replies and count total replies in parallel using Promise.all
       const [replies, totalReplies] = await Promise.all([
         BlogInteraction.find({
@@ -261,7 +262,7 @@ module.exports = {
             select: "title", // Adjust fields to return
           })
           .exec(),
-  
+
         BlogInteraction.countDocuments({
           _parentComment:id, // Parent comment reference
           isDeleted: false, // Ensure replies are not deleted
@@ -270,7 +271,7 @@ module.exports = {
       ]);
       const totalPages = Math.ceil(totalReplies / limit); // Total pages
       const currentPage = Math.ceil(skip / limit) + 1; // Current page based on skip and limit
-  
+
       return res.status(200).json({error:false,
         replies, // Paginated list of replies
         totalReplies, // Total count of replies
@@ -289,57 +290,57 @@ module.exports = {
  * @apiName PostBlogInteraction
  * @apiGroup BlogInteraction
  * @apiVersion 1.0.0
- * 
+ *
  * @apiDescription Handles interactions on a blog post, such as likes and comments (including replies to comments).
- * 
+ *
  * @apiParam {String} id The ID of the blog post.
- * @apiBody {String} category The interaction category ("like" or "comment"). 
+ * @apiBody {String} category The interaction category ("like" or "comment").
  * @apiBody {String} [content] The comment content (mandatory if `category` is "comment").
  * @apiBody {Boolean} [isReply=false] Indicates whether the comment is a reply to another comment.
  * @apiBody {String} [_blogId=req.params] The blog ID (defaults to `req.params.id`).
  * @apiBody {String} [_createdby=req.user._id] The user ID of the creator (defaults to `req.user._id`).
  * @apiBody {String} [parentComment] The ID of the parent comment (mandatory if `isReply` is `true`).
  * @apiBody {Object[]} [attachments] Attachments related to the interaction.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
  * @apiError {Boolean} error Indicates if there was an error (always `true` for failed requests).
  * @apiError {String} message A descriptive error message.
- * 
+ *
  * @apiErrorExample {json} Missing Mandatory Field (400):
  * HTTP/1.1 400 Bad Request
  * {
  *   "error": true,
  *   "message": "Missing mandatory field `content` for comment"
  * }
- * 
+ *
  * @apiErrorExample {json} Blog Not Found (400):
  * HTTP/1.1 400 Bad Request
  * {
  *   "error": true,
  *   "message": "Blog not found"
  * }
- * 
+ *
  * @apiErrorExample {json} Already Liked (400):
  * HTTP/1.1 400 Bad Request
  * {
  *   "error": true,
  *   "message": "You have already liked this blog"
  * }
- * 
+ *
  * @apiErrorExample {json} Cannot Like Own Blog (400):
  * HTTP/1.1 400 Bad Request
  * {
  *   "error": true,
  *   "message": "You cannot like your own blog"
  * }
- * 
+ *
  * @apiErrorExample {json} Parent Comment Not Found (404):
  * HTTP/1.1 404 Not Found
  * {
  *   "error": true,
  *   "message": "Parent comment not found"
  * }
- * 
+ *
  * @apiErrorExample {json} Server Error (400):
  * HTTP/1.1 400 Bad Request
  * {
@@ -433,7 +434,7 @@ module.exports = {
                     });
                 }
 
-                await BlogInteraction.create({
+                const interaction = await BlogInteraction.create({
                     category: "like",
                     _blogId,
                     _createdBy,
@@ -442,6 +443,24 @@ module.exports = {
 
                 blog.likes += 1;
                 await blog.save();
+
+                // Create notification for blog author about the like
+                if (blog._author && _createdBy && !_createdBy.equals(blog._author._id)) {
+                    try {
+                        await Notification.create({
+                            title: 'New Like on Your Blog',
+                            message: `Someone liked your blog "${blog.title}"`,
+                            type: 'like',
+                            target: 'specific_user',
+                            targetUser: blog._author._id,
+                            sourceUser: _createdBy,
+                            blogId: _blogId
+                        });
+                    } catch (notificationError) {
+                        console.error('Error creating like notification:', notificationError);
+                        // Continue with the response even if notification creation fails
+                    }
+                }
 
                 return res.status(201).json({
                     error: false,
@@ -509,6 +528,45 @@ module.exports = {
             }
         }
 
+        // Create notifications based on interaction type
+        try {
+            if (isReply) {
+                // This is a reply to a comment
+                const parentCommentObj = await BlogInteraction.findById(parentComment);
+                if (parentCommentObj && parentCommentObj._createdBy && _createdBy && !_createdBy.equals(parentCommentObj._createdBy)) {
+                    // Create notification for parent comment author
+                    await Notification.create({
+                        title: 'New Reply to Your Comment',
+                        message: `Someone replied to your comment on "${blog.title}"`,
+                        type: 'reply',
+                        target: 'specific_user',
+                        targetUser: parentCommentObj._createdBy,
+                        sourceUser: _createdBy,
+                        blogId: _blogId,
+                        commentId: interaction._id
+                    });
+                }
+            } else {
+                // This is a comment on a blog
+                if (blog._author && _createdBy && !_createdBy.equals(blog._author._id)) {
+                    // Create notification for blog author
+                    await Notification.create({
+                        title: 'New Comment on Your Blog',
+                        message: `Someone commented on your blog "${blog.title}"`,
+                        type: 'comment',
+                        target: 'specific_user',
+                        targetUser: blog._author._id,
+                        sourceUser: _createdBy,
+                        blogId: _blogId,
+                        commentId: interaction._id
+                    });
+                }
+            }
+        } catch (notificationError) {
+            console.error('Error creating comment/reply notification:', notificationError);
+            // Continue with the response even if notification creation fails
+        }
+
         return res.status(201).json({
             error: false,
             interaction,
@@ -530,7 +588,7 @@ module.exports = {
  * @apiGroup BlogInteraction
  * @apiVersion 3.0.0
  * @apiDescription Allows users to like or unlike a comment or reply on a blog post.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
  *
  * @apiParam {String} id The ID of the comment or reply to like or unlike.
@@ -566,39 +624,61 @@ module.exports = {
       const { like, unlike } = req.body;
       const interactionId = req.params.id; // The ID of the comment or reply to like/unlike
       const userId = req.user._id;
-  
+
       // Find the comment or reply
       const interaction = await BlogInteraction.findOne({
         _id: interactionId,
         category: "comment", // Applies to both comments and replies
       }).exec();
-  
+
       if (!interaction) {
         return res.status(404).json({ error: true, message: "Comment or reply not found" });
       }
-  
+
       if (like) {
         // Check if the user has already liked the comment/reply
         if (interaction._likedBy.includes(userId)) {
           return res.status(400).json({ error: true, message: "Already liked this comment/reply" });
         }
-  
+
         // Add user to `_likedBy` array and increase likes count
         interaction._likedBy.push(userId);
         interaction.likes += 1;
+
+        // Create notification for comment owner about the like
+        try {
+          // Get the blog to include its title in the notification
+          const blog = await Blog.findById(interaction._blogId);
+
+          if (interaction._createdBy && userId && !userId.equals(interaction._createdBy)) {
+            await Notification.create({
+              title: 'New Like on Your Comment',
+              message: `Someone liked your comment on "${blog ? blog.title : 'a blog'}"`,
+              type: 'like',
+              target: 'specific_user',
+              targetUser: interaction._createdBy,
+              sourceUser: userId,
+              blogId: interaction._blogId,
+              commentId: interaction._id
+            });
+          }
+        } catch (notificationError) {
+          console.error('Error creating comment like notification:', notificationError);
+          // Continue with the response even if notification creation fails
+        }
       } else if (unlike) {
         // Check if the user has liked the comment/reply before
         if (!interaction._likedBy.includes(userId)) {
           return res.status(400).json({ error: true, message: "You haven't liked this comment/reply" });
         }
-  
+
         // Remove user from `_likedBy` array and decrease likes count
         interaction._likedBy = interaction._likedBy.filter((id) => id.toString() !== userId.toString());
         interaction.likes = Math.max(0, interaction.likes - 1);
       }
-  
+
       await interaction.save();
-  
+
       return res.json({ error: false, message: like ? "Liked successfully" : "Unliked successfully" });
     } catch (error) {
       return res.status(400).json({ error: true, message: error.message });
@@ -612,7 +692,7 @@ module.exports = {
  * @apiGroup BlogInteraction
  * @apiVersion 8.0.0
  * @apiDescription Allows users to unlike a post.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
  *
  * @apiParam {String} id The ID of the post to unlike.
@@ -644,7 +724,7 @@ module.exports = {
     try {
       const { id } = req.params;  // 'id' from the URL parameters
       const userId = req.user._id;  // Assuming user ID is stored in req.user (authentication done)
-  
+
       // Find the BlogInteraction for the 'like' category created by the current user
       const interaction = await BlogInteraction.findOne({
         _blogId: id,
@@ -652,23 +732,23 @@ module.exports = {
         _createdBy: userId,
         isDeleted: false,
       });
-  
+
       // If no like interaction is found, return an error
       if (!interaction) {
         return res.status(404).json({ message: 'You have not liked this blog.' });
       }
-  
+
       // Soft delete the like interaction (you can also hard delete it if needed)
       interaction.isDeleted = true;
       await interaction.save();
-  
+
       // Update the like count of the blog
       const blog = await Blog.findOne({ _id: id });
       if (blog) {
         blog.likes -= 1;  // Decrease the like count
         await blog.save();
       }
-  
+
       return res.status(200).json({ message: 'Blog unliked successfully' });
     } catch (error) {
       console.error('Error unliking blog:', error);
@@ -725,7 +805,7 @@ module.exports = {
       const {content} =req.body
 
       if(!content) res.status(400).json({error: true, message: "Missing mandatory field `content`"})
-      
+
       let interaction = await BlogInteraction.findOne({_id: req.params.id, category: "comment", _createdBy: req.user._id}).exec()
 
       if(!interaction) return res.status(404).json({error: true, message: "Comment not found"})
@@ -734,7 +814,7 @@ module.exports = {
       await interaction.save()
 
       return res.json({error: false, message: "Updated successfully"})
-      
+
     } catch (error) {
       console.log("Error is: ", error);
       return res.status(400).json({ error: true, message: error.message });
@@ -747,35 +827,35 @@ module.exports = {
  * @apiGroup BlogInteraction
  * @apiVersion 7.0.0
  * @apiPermission User (Authenticated with JWT)
- * 
+ *
  * @apiParam {String} id The unique ID of the interaction (comment or reply) to be deleted.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
- * 
+ *
  * @apiSuccess {Boolean} error false Indicates the request was successful.
  * @apiSuccess {String} message Success message, e.g., "Interaction deleted successfully".
- * 
+ *
  * @apiError {Boolean} error true Indicates the request failed.
  * @apiError {String} message Error message detailing the issue.
- * 
+ *
  * @apiExample {curl} Example usage:
  *     curl -X DELETE "http://localhost:3000/blog-interactions/12345" \
  *     -H "Authorization: Bearer <your_jwt_token>"
- * 
+ *
  * @apiExample {json} Success Response:
  *   HTTP/1.1 200 OK
  *   {
  *     "error": false,
  *     "message": "Interaction deleted successfully"
  *   }
- * 
+ *
  * @apiExample {json} Error Response (Interaction already deleted):
  *   HTTP/1.1 400 Bad Request
  *   {
  *     "error": true,
  *     "message": "Interaction has already been deleted"
  *   }
- * 
+ *
  * @apiExample {json} Error Response (Permission denied):
  *   HTTP/1.1 403 Forbidden
  *   {
@@ -788,26 +868,26 @@ module.exports = {
   async deleteInteraction(req, res) {
     try {
       const { id } = req.params;
-  
+
       const interaction = await BlogInteraction.findOne({ _id: id, isDeleted: false });
-  
+
       if (!interaction)  return res.status(404).json({error: true, message: "Interaction not found" });
-  
+
       interaction.isDeleted = true;
       await interaction.save();
-  
+
       const blog = await Blog.findOne({ _id: interaction._blogId });
-  
+
       if (interaction.category === "comment") {
         if (!interaction._parentComment) {
           // Main comment: Soft delete all replies
           const replies = await BlogInteraction.find({ _parentComment: interaction._id, isDeleted: false });
-  
+
           await BlogInteraction.updateMany(
             { _parentComment: interaction._id },
             { $set: { isDeleted: true } }
           );
-  
+
           const deletedCount = replies.length + 1; // Main comment + replies
           blog.comments -= deletedCount;
         } else {
@@ -816,29 +896,16 @@ module.exports = {
             { _id: interaction._parentComment },
             { $inc: { replyCount: -1 } }
           );
-  
+
           blog.comments -= 1;
         }
       }
-  
+
       await blog.save();
-  
+
       return res.status(200).json({error: true, message: "Interaction deleted successfully" });
     } catch (error) {
       return res.status(400).json({error: true, message: "Internal server error" });
     }
-  }  
-  ,
-  async testing(req, res) {
-    try {
-      console.log("This is tes");
-      
-      return res.status(200).json({ success: true, message: "Hello" });
-    } catch (error) {
-      console.error("Error:", error);
-      return res.status(500).json({ error: true, message: error.message });
-    }
   }
-
-
 }

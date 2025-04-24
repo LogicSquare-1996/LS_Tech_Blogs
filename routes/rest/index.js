@@ -15,6 +15,7 @@ const profile = require("./profile")
 const blogs = require("./blogs")
 const interactions = require("./interactions")
 const history = require("./history")
+const notifications = require("./notifications")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 router.post("/signup", signup.post) // UNAUTHENTICATED
@@ -64,11 +65,14 @@ router.put("/post/update/comment/:id",interactions.updateComment)
 router.delete('/post/deleteinteraction/:id',interactions.deleteInteraction)
 
 
-// router.get("/blog/", interactions.testing)
-
 
 //History Routes
 router.post("/search/history", history.searchHistory)
 
+//Notification Routes
+router.post("/notifications", notifications.getUserNotifications)
+router.put("/notifications/:id/read", notifications.markNotificationAsRead)
+router.put("/notifications/read-all", notifications.markAllNotificationsAsRead)
+router.post("/notifications/unread-count", notifications.getUnreadNotificationCount)
 
 module.exports = router

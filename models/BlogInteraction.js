@@ -61,28 +61,34 @@ const BlogInteractionSchema = new mongoose.Schema({
 // Hook to update blog counts when an interaction is saved or removed
 BlogInteractionSchema.post("save", async function () {
   if (!this._blogId) return;
-  
-  const blog = await mongoose.model("Blog").findById(this._blogId);
 
-  if (this.category === "like") {
-    // Update the like count of the blog
-    blog.likeCount = await mongoose.model("BlogInteraction").countDocuments({
-      _blogId: this._blogId,
-      category: "like",
-      isDeleted: false,
-    });
-  } else if (this.category === "comment") {
-    // Update the comment count and reply count
-    blog.commentCount = await mongoose.model("BlogInteraction").countDocuments({
-      _blogId: this._blogId,
-      category: "comment",
-      isDeleted: false,
-    });
-    // Update the reply count based on replies to comments
-    blog.replyCount = await mongoose.model("BlogInteraction").countDocuments({
-      _parentComment: { $exists: true },
-      isDeleted: false,
-    });
+  const blog = await mongoose.model("Blog").findById(this._blogId);
+  if (!blog) return;
+
+  try {
+    if (this.category === "like") {
+      // Update the like count of the blog
+      blog.likeCount = await mongoose.model("BlogInteraction").countDocuments({
+        _blogId: this._blogId,
+        category: "like",
+        isDeleted: false,
+      });
+    } else if (this.category === "comment") {
+      // Update the comment count and reply count
+      blog.commentCount = await mongoose.model("BlogInteraction").countDocuments({
+        _blogId: this._blogId,
+        category: "comment",
+        isDeleted: false,
+      });
+
+      // Update the reply count based on replies to comments
+      blog.replyCount = await mongoose.model("BlogInteraction").countDocuments({
+        _parentComment: { $exists: true },
+        isDeleted: false,
+      });
+    }
+  } catch (error) {
+    console.error('Error updating blog counts:', error);
   }
 
   await blog.save();

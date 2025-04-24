@@ -5,9 +5,9 @@ const BlogInteraction = require("../../models/BlogInteraction")
 module.exports = {
   /**
     *
-    * @api {get} /user/:id get user details
+    * @api {get} /user/:id 1.0 get user details
     * @apiName userDetails
-    * @apiGroup Admin-User
+    * @apiGroup Admin-Users
     * @apiVersion  1.0.0
     * @apiPermission User
     *

@@ -7,9 +7,9 @@ const mailer = require("../../lib/mail")
 const UserSchema = new mongoose.Schema({
 
   _bookmarks: [
-    { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Blog' 
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Blog'
     }
   ],
 
@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema({
     first: String,
     last: String,
   },
-  
+
 
   email: {
     type: String,
@@ -78,21 +78,26 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
 
+  isTopContributor: {
+    type: Boolean,
+    default: false
+  },
+
   forgotpassword: {
     requestedAt: { type: Date, default: null },
     token: { type: String, default: null },
     expiresAt: { type: Date, default: null }
   },
-  
+
   otp: { type: String }, // OTP for email verification
- 
+
   otpCreatedAt: { type: Date },
-  
+
   isVerified: { type: Boolean, default: false }, // Email verification status
- 
-  googleId: { type: String, unique: true },
- 
-  
+
+  googleId: { type: String },
+
+
 })
 
 
@@ -130,6 +135,17 @@ UserSchema.methods.comparePassword = async function (pw) {
   try {
     const isMatch = await bcrypt.compare(pw, this.password)
     if (isMatch === false) throw new Error("Please check your credentials and try again")
+  } catch (error) {
+    throw error // rethrow
+  }
+}
+
+// compare OTP:
+UserSchema.methods.compareOTP = async function (otp) {
+  try {
+    if (!this.otp) return false;
+    const isMatch = await bcrypt.compare(otp, this.otp)
+    return isMatch
   } catch (error) {
     throw error // rethrow
   }

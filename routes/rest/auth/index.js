@@ -72,7 +72,8 @@ module.exports = {
         email: user.email,
         username: user.username,
         phone: user.phone,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        role: user.role
       }
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30 // 1 month

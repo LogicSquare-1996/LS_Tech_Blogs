@@ -1,6 +1,7 @@
 const User = require("../../../models/user");
 const otpGenerator = require("otp-generator");
-const mail = require("../../../lib/mail")
+const mail = require("../../../lib/mail");
+const redis = require("../../../lib/redis");
 const moment = require("moment");
 
 module.exports = {
@@ -102,7 +103,7 @@ module.exports = {
       }
 
       // Validate email domain
-      const allowedDomains = ['@logic-square.com'];
+      const allowedDomains = ['@logic-square.com','@gmail.com'];
       const allowedSpecificEmails = ['mbera829@gmail.com'];
       const emailDomain = email.substring(email.lastIndexOf("@"));
       if (
@@ -130,7 +131,6 @@ module.exports = {
         return res
           .status(400)
           .json({ error: true, reason: "Password must be between 6 to 20 characters!" });
-
       }
       if (password !== rePassword) {
         return res
@@ -144,54 +144,50 @@ module.exports = {
         specialChars: false,
       });
 
-      // Create user
-      let user = await User.create({
+      // Store OTP in Redis
+      await redis.storeOTP(email, otp, 300); // 5 min seconds expiry
+
+      // Store user data temporarily in Redis
+      const userData = {
         email,
         phone,
         password,
-        name: name,
+        name,
         username,
-        otp, // Save OTP in the database for verification
-        isVerified: false, // Add a field in your schema for this
-        otpCreatedAt: Date.now(),
-      });
-      console.log(user);
-      
-      console.log("My Name is: ", user.name.full);
-
+        isVerified: false
+      };
+      await redis.storeOTP(`${email}:data`, JSON.stringify(userData), 60);
 
       try {
         await mail("send-otp", {
-          to: user.email,
+          to: email,
           subject: "Verify your Email",
           locals: {
-            userName: user.name.full,
-            email: user.email,
-            otp: user.otp,
+            userName: `${name.first} ${name.last || ''}`.trim(),
+            email: email,
+            otp: otp,
           },
         });
       } catch (mailErr) {
         console.log("==> Mail sending Error: ", mailErr);
-        throw new Error(
-          "Failed to send OTP to your email! Please Retry Later."
-        );
+        throw new Error("Failed to send OTP to your email! Please Retry Later.");
       }
-
-      user = user.toObject();
-      delete user.password;
-      delete user.otp;
 
       return res.json({
         error: false,
         message: "Signup successful! Please verify your email.",
-        user,
+        user: {
+          email,
+          phone,
+          name,
+          username,
+          isVerified: false
+        }
       });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
     }
   },
-
-
 
   /**
    * Verify user's email
@@ -230,34 +226,56 @@ module.exports = {
           .json({ error: true, reason: "Missing mandatory fields" });
       }
 
-      // Verify OTP
-      const user = await User.findOne({ email, otp });
-      if (!user) {
+      // Get stored OTP from Redis
+      const storedOTP = await redis.getOTP(email);
+      if (!storedOTP) {
         return res
           .status(400)
-          .json({ error: true, reason: "Invalid OTP or Email" });
+          .json({ error: true, reason: "OTP expired or invalid" });
       }
 
-      const currentTime = moment();
-    const otpExpirationTime = moment(user.otpCreatedAt).add(1, "minute"); // Add 1 minute to `otpCreatedAt`
+      // Verify OTP
+      if (storedOTP !== otp) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Invalid OTP" });
+      }
 
-    if (currentTime.isAfter(otpExpirationTime)) {
-      return res
-        .status(400)
-        .json({ error: true, reason: "OTP has expired. Please request a new one." });
-    }
+      // Get stored user data
+      const userDataStr = await redis.getOTP(`${email}:data`);
+      if (!userDataStr) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Signup session expired" });
+      }
 
-      // Mark user as verified
-      user.isVerified = true;
-      user.isActive = true;
-      user.otp = null; // Clear OTP after verification
-      user.otpCreatedAt = null; // Clear OTP creation time
-      await user.save();
+      const userData = JSON.parse(userDataStr);
 
+      // Create user
+      const user = await User.create({
+        email: userData.email,
+        phone: userData.phone,
+        password: userData.password,
+        name: userData.name,
+        username: userData.username,
+        isVerified: true,
+        isActive: true
+      });
+
+      // Clean up Redis data
+      await redis.deleteOTP(email);
+      await redis.deleteOTP(`${email}:data`);
 
       return res.json({
         error: false,
         message: "Email verified successfully!",
+        user: {
+          email: user.email,
+          phone: user.phone,
+          name: user.name,
+          username: user.username,
+          isVerified: true
+        }
       });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
@@ -299,16 +317,10 @@ module.exports = {
    *   "reason": "Missing mandatory field `email`"
    * }
    *
-   * @apiErrorExample {json} Error-Response (User does not exist):
+   * @apiErrorExample {json} Error-Response (No pending verification found):
    * {
    *   "error": true,
-   *   "reason": "User does not exist"
-   * }
-   *
-   * @apiErrorExample {json} Error-Response (Email is already verified):
-   * {
-   *   "error": true,
-   *   "reason": "Email is already verified"
+   *   "reason": "No pending verification found for this email. Please register again."
    * }
    *
    * @apiErrorExample {json} Error-Response (Internal Server Error):
@@ -317,65 +329,66 @@ module.exports = {
    *   "reason": "An unexpected error occurred."
    * }
    */
-  async resendOTP(req, res) {
-    try {
-      const { email } = req.body;
+  
 
-      // Validate input field
-      if (!email) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Missing mandatory field `email`" });
-      }
+async resendOTP(req, res) {
+  try {
+    const { email } = req.body;
 
-      // Check if user exists
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res
-          .status(400)
-          .json({ error: true, message: "User does not exist" });
-      }
-
-      if (user.isVerified) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Email is already verified" });
-      }
-
-      // Generate a new OTP
-      const otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        specialChars: false,
+    if (!email) {
+      return res.status(400).json({
+        error: true,
+        reason: "Missing mandatory field `email`",
       });
-
-      user.otp = otp;
-      user.otpCreatedAt = moment();
-      user.isVerified = false;
-      await user.save();
-
-      try {
-        await mail("send-otp", {
-          to: user.email,
-          subject: "Resend OTP for Email Verification",
-          locals: {
-            userName: user.name.full,
-            email: user.email,
-            otp: user.otp,
-          },
-        });
-      } catch (mailErr) {
-        console.log("==> Mail sending Error: ", mailErr);
-        throw new Error(
-          "Failed to send OTP Email! Please Retry Later."
-        );
-      }
-
-      return res.json({
-        error: false,
-        message: "A new OTP has been sent to your email.",
-      });
-    } catch (err) {
-      return res.status(500).json({ error: true, message: err.message });
     }
-  },
+
+    // Get temp user data from Redis
+    const userDataStr = await redis.getOTP(`${email}:data`);
+    if (!userDataStr) {
+      return res.status(400).json({
+        error: true,
+        reason: "No pending verification found for this email. Please register again.",
+      });
+    }
+
+    const userData = JSON.parse(userDataStr);
+
+    // Generate new OTP
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    // Store new OTP in Redis (set with 10 min expiry or same as data)
+    await redis.storeOTP(email, otp, 600); // 600 sec = 10 min
+
+    // Re-store user data to refresh expiry (optional but recommended)
+    await redis.storeOTP(`${email}:data`, JSON.stringify(userData), 600);
+
+    // Send OTP email
+    try {
+      await mail("send-otp", {
+        to: email,
+        subject: "Verify your Email",
+        locals: {
+          userName: userData.name?.full || "User",
+          email: email,
+          otp: otp,
+        },
+      });
+    } catch (mailErr) {
+      console.log("==> Mail sending Error: ", mailErr);
+      throw new Error("Failed to send OTP to your email! Please retry later.");
+    }
+
+    return res.json({
+      error: false,
+      message: "OTP resent successfully!",
+    });
+
+  } catch (err) {
+    return res.status(500).json({ error: true, reason: err.message });
+  }
+},
+
 };

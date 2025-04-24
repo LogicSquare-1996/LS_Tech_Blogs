@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const BlogInteraction = require('./BlogInteraction')
+const BlogInteraction = require('./BlogInteraction');
 
 const BlogSchema = new mongoose.Schema({
   _author: {
@@ -88,6 +88,8 @@ BlogSchema.pre('save', async function (next) {
   }
   next();
 });
+
+// No post-save hook for notifications - handled in API controllers
 
 BlogSchema.set('timestamps', true);
 

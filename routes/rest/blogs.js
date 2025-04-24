@@ -1,7 +1,8 @@
 const Blog = require("../../models/blog");
 const History = require("../../models/history");
 const User = require("../../models/user");
-const BlogInteraction = require("../../models/BlogInteraction")
+const BlogInteraction = require("../../models/BlogInteraction");
+const Notification = require("../../models/Notification");
 
 module.exports = {
 
@@ -86,6 +87,23 @@ module.exports = {
         status,
         publishedAt: status === 'published' ? Date.now() : null, // Set publishedAt if status is 'published'
       });
+
+      // Create notification for all users if the blog is published
+      if (status === 'published') {
+        try {
+          await Notification.create({
+            title: 'New Blog Published',
+            message: `A new blog "${title}" has been published`,
+            type: 'new_blog',
+            target: 'all',
+            sourceUser: req.user._id,
+            blogId: blog._id
+          });
+        } catch (notificationError) {
+          console.error('Error creating blog notification:', notificationError);
+          // Continue with the response even if notification creation fails
+        }
+      }
 
       res.status(201).json({ message: 'Blog created successfully', blog });
 
@@ -233,19 +251,19 @@ module.exports = {
  * @apiGroup Blogs
  * @apiVersion 3.0.0
  * @apiPermission Authenticated User
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
- * 
+ *
  * @apiParam {String} id The ID of the blog to retrieve.
- * 
+ *
  * @apiDescription This endpoint retrieves a specific published blog by its ID.
- * 
+ *
  * @apiExample {json} Request Example:
  * GET /blog/60f5a13d6b1f0e12345abcde
- * 
+ *
  * @apiExample {json} Request Header Example:
  * Authorization: Bearer <jwt_token>
- * 
+ *
  * @apiSuccessExample {json} Success Response:
  * HTTP/1.1 200 OK
  * {
@@ -265,7 +283,7 @@ module.exports = {
  *     "frequency": 5
  *   }
  * }
- * 
+ *
  * @apiErrorExample {json} Error Response:
  * HTTP/1.1 400 Bad Request
  * {
@@ -293,13 +311,13 @@ module.exports = {
  * @apiGroup Blogs
  * @apiVersion 4.0.0
  * @apiPermission Authenticated User
- * 
+ *
  * @apiDescription This endpoint allows an authenticated user to update their blog. The blog must belong to the authenticated user.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
- * 
+ *
  * @apiParam {String} id The ID of the blog to update.
- * 
+ *
  * @apiBody {String} [title] The updated title of the blog.
  * @apiBody {String} [content] The updated content of the blog.
  * @apiBody {Array} [tags] An array of updated tags for the blog.
@@ -308,7 +326,7 @@ module.exports = {
  * @apiBody {Array} [attachments] An array of updated attachments for the blog.
  * @apiBody {String} [thumbnail] The updated thumbnail URL for the blog.
  * @apiBody {String="draft","publish"} [status] The updated status of the blog. Use `"draft"` for drafts or `"publish"` to publish the blog.
- * 
+ *
  * @apiExample {json} Request Example:
  * PUT /blogs/60f5a13d6b1f0e12345abcde
  * {
@@ -321,11 +339,11 @@ module.exports = {
  *   "thumbnail": "https://example.com/image.jpg",
  *   "status": "publish"
  * }
- * 
+ *
  * @apiSuccess {Boolean} success Indicates whether the operation was successful (true if successful).
  * @apiSuccess {String} message A success message.
  * @apiSuccess {Object} blog The updated blog object.
- * 
+ *
  * @apiSuccessExample {json} Success Response:
  * HTTP/1.1 200 OK
  * {
@@ -344,17 +362,17 @@ module.exports = {
  *     "_author": "60f5a13d6b1f0e12345abcd9"
  *   }
  * }
- * 
+ *
  * @apiError {Boolean} error Indicates whether an error occurred (always true).
  * @apiError {String} message A descriptive message about the error.
- * 
+ *
  * @apiErrorExample {json} BlogNotFound Error Response:
  * HTTP/1.1 404 Not Found
  * {
  *   "error": true,
  *   "message": "Blog not found"
  * }
- * 
+ *
  * @apiErrorExample {json} InternalServerError Error Response:
  * HTTP/1.1 500 Internal Server Error
  * {
@@ -424,46 +442,46 @@ module.exports = {
  * @apiGroup Blogs
  * @apiVersion 5.0.0
  * @apiPermission Authenticated User
- * 
+ *
  * @apiDescription This endpoint allows an authenticated user to perform a soft delete of a blog they authored. The blog is marked as deleted but not permanently removed from the database.
- * 
+ *
  * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
- * 
+ *
  * @apiParam {String} id The ID of the blog to delete.
- * 
+ *
  * @apiExample {json} Request Example:
  * DELETE /blogs/60f5a13d6b1f0e12345abcde
- * 
+ *
  * @apiExample {json} Request Header Example:
  * Authorization: Bearer <jwt_token>
- * 
+ *
  * @apiSuccess {Boolean} success Indicates whether the operation was successful.
  * @apiSuccess {String} message A message confirming the blog was soft-deleted.
- * 
+ *
  * @apiSuccessExample {json} Success Response:
  * HTTP/1.1 200 OK
  * {
  *   "success": true,
  *   "message": "Blog deleted successfully (soft delete)"
  * }
- * 
+ *
  * @apiError {Boolean} error Indicates whether an error occurred (always true).
  * @apiError {String} message A descriptive message about the error.
- * 
+ *
  * @apiErrorExample {json} Invalid Blog ID Error Response:
  * HTTP/1.1 400 Bad Request
  * {
  *   "error": true,
  *   "message": "Invalid Blog ID"
  * }
- * 
+ *
  * @apiErrorExample {json} Blog Not Found Error Response:
  * HTTP/1.1 404 Not Found
  * {
  *   "error": true,
  *   "message": "No Blog Found"
  * }
- * 
+ *
  * @apiErrorExample {json} Internal Server Error Response:
  * HTTP/1.1 400 Bad Request
  * {
@@ -506,7 +524,7 @@ module.exports = {
     try {
       const { id } = req.params
 
-      const blog = await Blog.findOne({ _id: id, _author: author })
+      const blog = await Blog.findOne({ _id: id, _author: req.user._id })
 
       if (!blog) {
         return res.status(404).json({ message: 'Blog not found' });
@@ -519,9 +537,25 @@ module.exports = {
 
       // Update the blog status to "Published"
       blog.status = 'published';
+      blog.publishedAt = Date.now();
 
       // Save the updated blog
       await blog.save();
+
+      // Create notification for all users
+      try {
+        await Notification.create({
+          title: 'New Blog Published',
+          message: `A new blog "${blog.title}" has been published`,
+          type: 'new_blog',
+          target: 'all',
+          sourceUser: req.user._id,
+          blogId: blog._id
+        });
+      } catch (notificationError) {
+        console.error('Error creating blog notification:', notificationError);
+        // Continue with the response even if notification creation fails
+      }
 
       // Respond with success
       return res.status(200).json({
@@ -532,7 +566,6 @@ module.exports = {
     } catch (error) {
       console.log("Error is: ", error);
       return res.status(400).json({ error: true, message: error.message })
-
     }
   },
 
@@ -542,17 +575,17 @@ module.exports = {
    * @apiGroup Blogs
    * @apiVersion 6.0.0
    *  @apiPermission Authenticated User
-   * 
+   *
    * @apiDescription This endpoint retrieves a paginated list of draft blogs authored by the authenticated user. Draft blogs are those with a status of "draft".
-   * 
+   *
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
-   * 
+   *
    * @apiParam {Number} [page=1] The page number for pagination.
    * @apiParam {Number} [limit=10] The number of blogs to retrieve per page.
-   * 
+   *
    * @apiExample {json} Request Example:
    * GET /blogs/drafts?page=2&limit=5
-   * 
+   *
    * @apiExample {json} Request Header Example:
    * Authorization: Bearer <jwt_token>
    * @apiSuccessExample {json} Success Response:
@@ -580,17 +613,17 @@ module.exports = {
    *   "page": 2,
    *   "limit": 5
    * }
-   * 
+   *
    * @apiError {Boolean} error Indicates whether an error occurred (always true).
    * @apiError {String} message A descriptive message about the error.
-   * 
+   *
    * @apiErrorExample {json} No Draft Blogs Error Response:
    * HTTP/1.1 400 Bad Request
    * {
    *   "error": true,
    *   "message": "No draft blogs found"
    * }
-   * 
+   *
    * @apiErrorExample {json} Internal Server Error Response:
    * HTTP/1.1 400 Bad Request
    * {
@@ -632,23 +665,23 @@ module.exports = {
    * @apiGroup Blogs
    * @apiVersion 7.0.0
    * @apiPermission Authenticated User
-   * 
+   *
    * @apiDescription This endpoint retrieves a list of distinct authors who have published blogs. The response includes the author's email, full name, and ID.
-   * 
+   *
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz".
-   * 
+   *
    * @apiExample {json} Request Example:
    * GET /blogs/authors
-   * 
+   *
    * @apiExample {json} Request Header Example:
    * Authorization: Bearer <jwt_token>
-   * 
+   *
    * @apiSuccess {Boolean} error Indicates whether the operation was successful (false if successful).
    * @apiSuccess {Object[]} authorsList List of distinct authors.
    * @apiSuccess {String} authorsList.email Author's email address.
    * @apiSuccess {String} authorsList.name Author's full name.
    * @apiSuccess {String} authorsList._id Author's unique ID.
-   * 
+   *
    * @apiSuccessExample {json} Success Response:
    * HTTP/1.1 200 OK
    * {
@@ -666,17 +699,17 @@ module.exports = {
    *     }
    *   ]
    * }
-   * 
+   *
    * @apiError {Boolean} error Indicates whether an error occurred (always true).
    * @apiError {String} message A descriptive message about the error.
-   * 
+   *
    * @apiErrorExample {json} NoAuthorsFound Error Response:
    * HTTP/1.1 400 Bad Request
    * {
    *   "error": true,
    *   "message": "No authors found"
    * }
-   * 
+   *
    * @apiErrorExample {json} InternalServerError Error Response:
    * HTTP/1.1 400 Bad Request
    * {
@@ -766,15 +799,15 @@ module.exports = {
     try {
       const { id } = req.params;  // Blog Id
       const userId = req.user._id; // Assuming user is authenticated
-  
+
       const user = await User.findOne({ _id: userId });
       if (!user) return res.status(404).json({ error: true, message: "User not found" });
-  
+
       const blog = await Blog.findOne({ _id: id, status:"published" });
       if (!blog) return res.status(404).json({ error: true, message: "Blog is not available or Not Published" });
-  
+
       const isBookmarked = user._bookmarks.includes(id);
-  
+
       if (isBookmarked) {
         // Unbookmark the blog
         user._bookmarks = user._bookmarks.filter(bookmarkId => bookmarkId.toString() !== id);
@@ -782,15 +815,15 @@ module.exports = {
         // Bookmark the blog
         user._bookmarks.push(id);
       }
-  
+
       await user.save();
-  
-      return res.status(200).json({ 
-        success: true, 
-        message: isBookmarked ? "Bookmark removed" : "Blog bookmarked", 
-        bookmarked: !isBookmarked 
+
+      return res.status(200).json({
+        success: true,
+        message: isBookmarked ? "Bookmark removed" : "Blog bookmarked",
+        bookmarked: !isBookmarked
       });
-  
+
     } catch (error) {
       console.error("Error:", error);
       return res.status(500).json({ error: true, message: error.message });
@@ -845,23 +878,23 @@ module.exports = {
     try {
       // Fetch the user and their bookmarked blogs
       const user = await User.findOne({ _id: req.user._id });
-  
+
       if (!user || !user._bookmarks.length) {
         return res.status(404).json({ error: true, message: 'No bookmarks found' });
       }
-  
+
       // Fetch all blog details from the bookmarked IDs
       const blogList = await Blog.find({ _id: { $in: user._bookmarks } })
         .populate('_author', 'name email') // Populate blog author details
         .lean(); // Convert to plain JS object for performance
-  
+
       return res.status(200).json({ message: true, blogList });
     } catch (error) {
       console.error('Error:', error);
       return res.status(500).json({ error: true, message: error.message });
     }
   }
-  
-  
+
+
 
 }

@@ -793,9 +793,9 @@ define({ "api": [
   {
     "type": "get",
     "url": "/user/:id",
-    "title": "get user details",
+    "title": "1.0 get user details",
     "name": "userDetails",
-    "group": "Admin_User",
+    "group": "Admin_Users",
     "version": "1.0.0",
     "permission": [
       {
@@ -849,7 +849,7 @@ define({ "api": [
       ]
     },
     "filename": "routes/admin/users.js",
-    "groupTitle": "Admin_User"
+    "groupTitle": "Admin_Users"
   },
   {
     "type": "get",

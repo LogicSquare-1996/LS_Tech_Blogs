@@ -6,7 +6,7 @@ const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['HS256'] 
 const users = require("./users")
 const blogs = require("./blogs")
 const dashboard = require("./dashboard")
-const broadcast = require("./broadcast")
+const notifications = require("./notifications")
 
 router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
@@ -24,9 +24,9 @@ router.delete("/blogs/:id", blogs.deleteBlog)
 router.get("/comments", blogs.getAllComments)
 router.delete("/comments/:id", blogs.deleteComment)
 
-// Broadcast routes
-router.post("/broadcast", broadcast.sendBroadcast)
-router.get("/broadcasts", broadcast.getAllBroadcasts)
-router.get("/exports/:type", broadcast.exportData)
+// Notification routes
+router.post("/notification", notifications.sendNotification)
+router.post("/notifications", notifications.getAllNotifications)
+router.delete("/notifications/:id", notifications.deleteNotification)
 
 module.exports = router
