@@ -42,6 +42,11 @@ const NotificationSchema = new mongoose.Schema({
   readAt: {
     type: Date
   },
+  // Array of users who haven't read this notification yet (for 'all' target notifications)
+  unreadUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   expiresAt: {
     type: Date
   },

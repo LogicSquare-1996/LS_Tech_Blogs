@@ -91,13 +91,18 @@ module.exports = {
       // Create notification for all users if the blog is published
       if (status === 'published') {
         try {
+          // Get all active users to populate unreadUsers array
+          const activeUsers = await User.find({ isActive: true }).select('_id');
+          const unreadUsers = activeUsers.map(user => user._id);
+
           await Notification.create({
             title: 'New Blog Published',
             message: `${req.user.fullName} published a new blog: "${blog.title}" `,
             type: 'new_blog',
             target: 'all',
             sourceUser: req.user._id,
-            blogId: blog._id
+            blogId: blog._id,
+            unreadUsers: unreadUsers // Add all active users to unreadUsers array
           });
         } catch (notificationError) {
           console.error('Error creating blog notification:', notificationError);
@@ -544,13 +549,18 @@ module.exports = {
 
       // Create notification for all users
       try {
+        // Get all active users to populate unreadUsers array
+        const activeUsers = await User.find({ isActive: true }).select('_id');
+        const unreadUsers = activeUsers.map(user => user._id);
+
         await Notification.create({
           title: 'New Blog Published',
           message: `${req.user.fullName} published a new blog: "${blog.title}" `,
           type: 'new_blog',
           target: 'all',
           sourceUser: req.user._id,
-          blogId: blog._id
+          blogId: blog._id,
+          unreadUsers: unreadUsers // Add all active users to unreadUsers array
         });
       } catch (notificationError) {
         console.error('Error creating blog notification:', notificationError);

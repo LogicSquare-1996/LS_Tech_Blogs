@@ -123,6 +123,14 @@ module.exports = {
         });
       }
 
+      // If target is 'all', get all active user IDs to populate unreadUsers
+      let unreadUsers = [];
+      if (target === 'all') {
+        // Get all active users
+        const activeUsers = await User.find({ isActive: true }).select('_id');
+        unreadUsers = activeUsers.map(user => user._id);
+      }
+
       // Create the notification
       const notification = await Notification.create({
         title,
@@ -131,6 +139,7 @@ module.exports = {
         target,
         targetUser: target === 'specific_user' ? targetUser : null,
         sourceUser: req.user._id,
+        unreadUsers: target === 'all' ? unreadUsers : [],
         expiresAt: expiresAt || null
       });
 
@@ -351,8 +360,8 @@ module.exports = {
       }
 
       const { id } = req.params;
-      
-      
+
+
       // Find the notification
       const notification = await Notification.findOne({
         _id: id,

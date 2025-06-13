@@ -87,28 +87,20 @@ module.exports = {
       const parsedLimit = parseInt(limit, 10);
       const parsedUnreadOnly = unreadOnly === true || unreadOnly === "true";
 
-      // Build filter for notifications that target this user
-      const filter = {
-        $or: [
-          { target: 'all' },
-          { targetUser: userId }
-        ]
+      // Build filter for user-specific notifications
+      const userSpecificFilter = {
+        target: 'specific_user',
+        targetUser: userId,
+        isDeleted: { $ne: true }
       };
 
-      // Count total notifications for this user
-      const totalNotifications = await Notification.countDocuments(filter);
-
-      // Count unread notifications for this user
-      const unreadFilter = { ...filter, isRead: false };
-      const unreadCount = await Notification.countDocuments(unreadFilter);
-
-      // If unreadOnly is true, add read status filter
+      // If unreadOnly is true, add read status filter to user-specific notifications
       if (parsedUnreadOnly) {
-        filter.isRead = false;
+        userSpecificFilter.isRead = false;
       }
 
-      // Get notifications with pagination
-      const notifications = await Notification.find(filter)
+      // Get user-specific notifications
+      const userSpecificNotifications = await Notification.find(userSpecificFilter)
         .populate({
           path: 'sourceUser',
           select: 'name'
@@ -118,13 +110,61 @@ module.exports = {
           select: 'title slug'
         })
         .sort({ createdAt: -1 })
-        .skip((parsedPage - 1) * parsedLimit)
-        .limit(parsedLimit)
         .lean();
+
+      // Build filter for "all users" notifications
+      const allUsersFilter = {
+        target: 'all',
+        isDeleted: { $ne: true }
+      };
+
+      // Get "all users" notifications
+      const allUsersNotifications = await Notification.find(allUsersFilter)
+        .populate({
+          path: 'sourceUser',
+          select: 'name'
+        })
+        .populate({
+          path: 'blogId',
+          select: 'title slug'
+        })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      // Process "all users" notifications to determine read status for current user
+      const processedAllUsersNotifications = allUsersNotifications.map(notification => {
+        // Check if the current user is in the unreadUsers array
+        const isUnread = notification.unreadUsers &&
+                         notification.unreadUsers.some(
+                           unreadUserId => unreadUserId.toString() === userId.toString()
+                         );
+
+        // Set isRead based on whether the user is in unreadUsers array
+        notification.isRead = !isUnread;
+        return notification;
+      });
+
+      // Filter "all users" notifications if unreadOnly is true
+      const filteredAllUsersNotifications = parsedUnreadOnly
+        ? processedAllUsersNotifications.filter(notification => !notification.isRead)
+        : processedAllUsersNotifications;
+
+      // Combine and sort all notifications
+      let combinedNotifications = [...userSpecificNotifications, ...filteredAllUsersNotifications];
+      combinedNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // Apply pagination
+      const startIndex = (parsedPage - 1) * parsedLimit;
+      const endIndex = startIndex + parsedLimit;
+      const paginatedNotifications = combinedNotifications.slice(startIndex, endIndex);
+
+      // Count total and unread notifications
+      const totalNotifications = combinedNotifications.length;
+      const unreadCount = combinedNotifications.filter(notification => !notification.isRead).length;
 
       return res.status(200).json({
         error: false,
-        notifications,
+        notifications: paginatedNotifications,
         pagination: {
           total: totalNotifications,
           unreadCount,
@@ -209,19 +249,29 @@ module.exports = {
         });
       }
 
-      // Check if the notification is for this user or for all users
-      if (notification.target !== 'all' &&
-          (!notification.targetUser || !notification.targetUser.equals(userId))) {
-        return res.status(403).json({
-          error: true,
-          reason: "You don't have permission to access this notification"
-        });
-      }
+      // Handle different notification targets
+      if (notification.target === 'all') {
+        // For "all users" notifications, remove the user from unreadUsers array
+        if (notification.unreadUsers && notification.unreadUsers.length > 0) {
+          notification.unreadUsers = notification.unreadUsers.filter(
+            unreadUserId => unreadUserId.toString() !== userId.toString()
+          );
+          await notification.save();
+        }
+      } else if (notification.target === 'specific_user') {
+        // Check if the notification is for this user
+        if (!notification.targetUser || !notification.targetUser.equals(userId)) {
+          return res.status(403).json({
+            error: true,
+            reason: "You don't have permission to access this notification"
+          });
+        }
 
-      // Mark as read
-      notification.isRead = true;
-      notification.readAt = new Date();
-      await notification.save();
+        // Mark as read
+        notification.isRead = true;
+        notification.readAt = new Date();
+        await notification.save();
+      }
 
       return res.status(200).json({
         error: false,
@@ -272,19 +322,16 @@ module.exports = {
   async markAllNotificationsAsRead(req, res) {
     try {
       const userId = req.user._id;
+      let totalMarkedAsRead = 0;
 
-      // Build filter for notifications that target this user
-      const filter = {
-        $or: [
-          { target: 'all' },
-          { targetUser: userId }
-        ],
-        isRead: false
-      };
-
-      // Update all matching notifications
-      const result = await Notification.updateMany(
-        filter,
+      // Step 1: Mark all user-specific notifications as read
+      const userSpecificResult = await Notification.updateMany(
+        {
+          target: 'specific_user',
+          targetUser: userId,
+          isRead: false,
+          isDeleted: { $ne: true }
+        },
         {
           $set: {
             isRead: true,
@@ -293,9 +340,26 @@ module.exports = {
         }
       );
 
+      totalMarkedAsRead += userSpecificResult.nModified;
+
+      // Step 2: Remove user from unreadUsers array in all "all users" notifications
+      const allUsersNotifications = await Notification.find({
+        target: 'all',
+        unreadUsers: userId,
+        isDeleted: { $ne: true }
+      });
+
+      for (const notification of allUsersNotifications) {
+        notification.unreadUsers = notification.unreadUsers.filter(
+          unreadUserId => unreadUserId.toString() !== userId.toString()
+        );
+        await notification.save();
+        totalMarkedAsRead++;
+      }
+
       return res.status(200).json({
         error: false,
-        message: `${result.nModified} notifications marked as read`
+        message: `${totalMarkedAsRead} notifications marked as read`
       });
     } catch (err) {
       return res.status(500).json({
@@ -342,22 +406,30 @@ module.exports = {
   async getUnreadNotificationCount(req, res) {
     try {
       const userId = req.user._id;
+      let totalUnreadCount = 0;
 
-      // Build filter for notifications that target this user
-      const filter = {
-        $or: [
-          { target: 'all' },
-          { targetUser: userId }
-        ],
-        isRead: false
-      };
+      // Step 1: Count unread user-specific notifications
+      const userSpecificUnreadCount = await Notification.countDocuments({
+        target: 'specific_user',
+        targetUser: userId,
+        isRead: false,
+        isDeleted: { $ne: true }
+      });
 
-      // Count unread notifications
-      const unreadCount = await Notification.countDocuments(filter);
+      totalUnreadCount += userSpecificUnreadCount;
+
+      // Step 2: Count "all users" notifications where user is in unreadUsers array
+      const allUsersUnreadCount = await Notification.countDocuments({
+        target: 'all',
+        unreadUsers: userId,
+        isDeleted: { $ne: true }
+      });
+
+      totalUnreadCount += allUsersUnreadCount;
 
       return res.status(200).json({
         error: false,
-        unreadCount
+        unreadCount: totalUnreadCount
       });
     } catch (err) {
       return res.status(500).json({
